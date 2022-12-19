@@ -7,21 +7,21 @@ const HEIGHT: usize = 8;
 const WIDTH: usize = 28;
 
 pub struct Animation {
-    frames: Vec<Frame>,
-    grayscale: bool,
+    pub frames: Vec<Frame>,
+    pub grayscale: bool,
 }
 
-struct Frame {
-    pixels: [[Pixel; WIDTH]; HEIGHT],
-    delay: u16,
+pub struct Frame {
+    pub pixels: [[Pixel; WIDTH]; HEIGHT],
+    pub delay: u16,
 }
 
 #[derive(Copy, Clone)]
-struct Pixel {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8,
+pub struct Pixel {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
 }
 
 impl Display for Pixel {
@@ -125,7 +125,7 @@ fn frame_is_grayscaled(frame: &Frame) -> bool {
     result
 }
 
-fn pixel_is_black(pixel: &Pixel) -> bool {
+pub fn pixel_is_black(pixel: &Pixel) -> bool {
     pixel.r == 0 && pixel.g == 0 && pixel.b == 0
 }
 
@@ -163,6 +163,7 @@ mod tests {
         let frame = read_frame(&raw_frame);
         assert_eq!(frame.delay, 0);
         //assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied to type
+        //todo: ask, what to do here
     }
 
 
