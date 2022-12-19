@@ -6,7 +6,7 @@ use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::renderer::Renderer;
 
 pub struct ConsoleRenderer {
-    //define any needed global variables here
+    pub grayscale: bool,
 }
 
 impl Renderer for ConsoleRenderer{

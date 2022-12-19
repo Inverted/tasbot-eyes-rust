@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::fs::File;
+use std::path::PathBuf;
 
 use gif::DecodingError;
 
@@ -45,15 +46,22 @@ impl Display for Frame {
     }
 }
 
-pub fn read_animation(path: &str) -> Result<Animation, DecodingError> { //todo: ask, is DecodingError nice here?
+pub fn read_animation(path: PathBuf) -> Option<Animation> {
 
     //Setup decoder
     let mut decoder = gif::DecodeOptions::new();
     decoder.set_color_output(gif::ColorOutput::RGBA);
 
     //Open and read file
-    let file = File::open(path)?;
-    let mut decoder = decoder.read_info(file)?;
+    let file = File::open(path).ok()?; //todo: ask, is .ok? nice?
+    let mut decoder = decoder.read_info(file).ok()?; //todo: and rather, whats a nice way to print out the issue
+
+    //todo: ist this nice? .ok_or(Err("Error here?")) ?
+
+    /*
+    ideal would be if I could return Some() when everything is alright or print out a custom defined
+    message with something like error()! and return None
+     */
 
     //Interpret data
     let mut anim: Animation = Animation {
@@ -61,7 +69,7 @@ pub fn read_animation(path: &str) -> Result<Animation, DecodingError> { //todo: 
         grayscale: true,
     };
 
-    while let Some(raw_frame) = decoder.read_next_frame()? {
+    while let Some(raw_frame) = decoder.read_next_frame().ok()? {
         let frame = read_frame(raw_frame);
 
         //A single frame with color is worth enough to mark the entire animation as colorful
@@ -72,7 +80,7 @@ pub fn read_animation(path: &str) -> Result<Animation, DecodingError> { //todo: 
         anim.frames.push(frame);
     }
 
-    Ok(anim)
+    Some(anim)
 }
 
 fn read_frame(raw_frame: &gif::Frame) -> Frame {
@@ -140,13 +148,13 @@ mod tests {
     #[test]
     fn test_read_animation() {
         // Test reading a grayscale animation
-        let anim = read_animation("animations/base.gif").unwrap();
+        let anim = read_animation(PathBuf::from("animations/base.gif")).unwrap();
         assert_eq!(anim.grayscale, true);
         assert_eq!(anim.frames.len(), 1);
         assert_eq!(frame_is_grayscaled(&anim.frames[0]), true);
 
         // Test reading a colorful animation
-        let anim = read_animation("animations/testbot.gif").unwrap();
+        let anim = read_animation(PathBuf::from("animations/testbot.gif")).unwrap();
         assert_eq!(anim.grayscale, false);
         assert_eq!(anim.frames.len(), 1);
         assert_eq!(frame_is_grayscaled(&anim.frames[0]), false);
@@ -162,7 +170,7 @@ mod tests {
         // Test that the returned frame has the correct values
         let frame = read_frame(&raw_frame);
         assert_eq!(frame.delay, 0);
-        //assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied to type
+        //assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied
         //todo: ask, what to do here
     }
 
