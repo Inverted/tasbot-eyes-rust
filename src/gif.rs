@@ -12,12 +12,14 @@ pub struct Animation {
     pub grayscale: bool,
 }
 
+//always auto derive debug, when implementing Display
+#[derive(Eq, PartialEq, Debug)]
 pub struct Frame {
     pub pixels: [[Pixel; WIDTH]; HEIGHT],
     pub delay: u16,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Pixel {
     pub r: u8,
     pub g: u8,
@@ -46,7 +48,7 @@ impl Display for Frame {
     }
 }
 
-pub fn read_animation(path: PathBuf) -> Option<Animation> {
+pub fn read_animation(path: &PathBuf) -> Option<Animation> {
 
     //Setup decoder
     let mut decoder = gif::DecodeOptions::new();
@@ -61,6 +63,8 @@ pub fn read_animation(path: PathBuf) -> Option<Animation> {
     /*
     ideal would be if I could return Some() when everything is alright or print out a custom defined
     message with something like error()! and return None
+
+    thiserror crate
      */
 
     //Interpret data
@@ -148,13 +152,13 @@ mod tests {
     #[test]
     fn test_read_animation() {
         // Test reading a grayscale animation
-        let anim = read_animation(PathBuf::from("animations/base.gif")).unwrap();
+        let anim = read_animation(&PathBuf::from("gifs/base.gif")).unwrap();
         assert_eq!(anim.grayscale, true);
         assert_eq!(anim.frames.len(), 1);
         assert_eq!(frame_is_grayscaled(&anim.frames[0]), true);
 
         // Test reading a colorful animation
-        let anim = read_animation(PathBuf::from("animations/testbot.gif")).unwrap();
+        let anim = read_animation(&PathBuf::from("gifs/testbot.gif")).unwrap();
         assert_eq!(anim.grayscale, false);
         assert_eq!(anim.frames.len(), 1);
         assert_eq!(frame_is_grayscaled(&anim.frames[0]), false);
@@ -163,14 +167,14 @@ mod tests {
     #[test]
     fn test_read_frame() {
         // Read a frame from a GIF file
-        let file = File::open("animations/gray.gif").unwrap();
+        let file = File::open("gifs/gray.gif").unwrap();
         let mut decoder = gif::DecodeOptions::new().read_info(file).unwrap();
         let raw_frame = decoder.read_next_frame().unwrap().unwrap();
 
         // Test that the returned frame has the correct values
         let frame = read_frame(&raw_frame);
         assert_eq!(frame.delay, 0);
-        //assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied
+        assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied
         //todo: ask, what to do here
     }
 

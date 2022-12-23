@@ -12,3 +12,5 @@ colored = "2"  # https://github.com/mackwic/colored
 rand = "0.8.5"
 tempdir = "0.3.7"  # just for testing, todo: is there a special dependecy type for
 log = "0.4.17"
+
+# dev depency

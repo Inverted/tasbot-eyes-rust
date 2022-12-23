@@ -3,39 +3,81 @@ use std::io::Write;
 use std::os::unix::raw::time_t;
 use colored::{ColoredString, Colorize};
 use crate::gif::{Animation, Frame, pixel_is_black};
-use crate::renderer::Renderer;
+use crate::renderer::{Color, Renderer};
 
-pub struct ConsoleRenderer {
-    pub grayscale: bool,
+const FILLED_CHARACTERS: &str = "██";
+const EMPTY_CHARACTERS: &str = "  ";
+
+pub struct ConsoleRendererSettings {
+    pub clear_console: bool,
 }
 
-impl Renderer for ConsoleRenderer{
+impl Renderer for ConsoleRendererSettings {
     fn play(&self, anim: &Animation) {
         for frame in &anim.frames {
-            render_frame(frame);
+            show_frame(self, frame, None);
+        }
+    }
+
+    fn play_colored(&self, anim: &Animation, color: Color) {
+        for frame in &anim.frames {
+            show_frame(self, frame, Some(color)); //todo: why do I need the clone trait for wrapping a values in a some? --> because loop
         }
     }
 }
 
-fn render_frame(frame: &Frame){
-    //clear console
-    print!("{}[2J", 27 as char);
-
-    //render frame
-    for row in frame.pixels {
-        for pixel in row {
-            if !pixel_is_black(&pixel) {
-                print!("{}", "██".truecolor(pixel.r, pixel.g, pixel.b));
-            } else {
-                print!("  ");
-            }
-        }
-        print!("\n");
-        io::stdout().flush().unwrap();
-        //todo: to flush or not flush?
+fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<Color>){
+    //clear console, todo: no ask: make argument
+    if settings.clear_console {
+        clear_console();
     }
 
+    //render frame
+    render_frame(frame, color);
+
     //sleep base on delay from gif
+    sleep_frame_delay(frame);
+}
+
+fn sleep_frame_delay(frame: &Frame) {
     let ms = time::Duration::from_millis((frame.delay * 10) as u64);
     std::thread::sleep(ms);
+}
+
+//todo: is there something like doxygen in rust? like:
+/**
+ * Render a specific frame
+ * @param frame Frame, that's supposed to be rendered
+ */
+
+//cargo docs
+fn render_frame(frame: &Frame, color: Option<Color>) {
+    for row in frame.pixels {
+        for pixel in row {
+
+            if !pixel_is_black(&pixel) {
+
+                match color {
+                    None => {
+                        print!("{}", FILLED_CHARACTERS.truecolor(pixel.r, pixel.g, pixel.b));
+                    }
+                    Some(col) => {
+                        print!("{}", FILLED_CHARACTERS.truecolor(col.r, col.g, col.b));
+                    }
+                }
+
+            } else {
+                print!("{EMPTY_CHARACTERS}");
+            }
+        }
+        print!("\n"); //look up doku
+        io::stdout().flush().unwrap();
+        //io::stdout().write()
+
+        //todo: to flush or not flush?
+    }
+}
+
+fn clear_console(){
+    print!("{}[2J", 27 as char);
 }

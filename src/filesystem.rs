@@ -18,7 +18,7 @@ pub fn files_in_directory(dir: &Path) -> Option<Vec<PathBuf>> {
     Some(files)
 }
 
-//todo: could this be turned into a iterator extension
+//todo: could this be turned into a iterator extension --> makes not much sense, lol
 pub fn shuffle<T>(mut vec: Vec<T>) -> Vec<T>{
     vec.shuffle(&mut thread_rng());
     vec
@@ -38,19 +38,15 @@ mod tests {
         let temp_dir = TempDir::new("test_files_in_directory").unwrap();
         let dir = temp_dir.path();
 
-        let file_1 = dir.join("file_2.txt");
-        let file_2 = dir.join("file_1.txt");
-        let file_3 = dir.join("file_3.txt");
+        let file_1 = dir.join("file_1.txt");
         let subdir = dir.join("subdir");
         fs::create_dir(subdir.clone()).unwrap();
-        let file_4 = subdir.join("file_4.txt");
+        let file_2 = subdir.join("file_2.txt");
 
         fs::File::create(file_1.as_path()).unwrap();
         fs::File::create(file_2.as_path()).unwrap();
-        fs::File::create(file_3.as_path()).unwrap();
-        fs::File::create(file_4.as_path()).unwrap();
 
-        let expected = vec![file_1, file_2, file_3];
+        let expected = vec![file_1];
         let result = files_in_directory(dir).unwrap();
         assert_eq!(result, expected);
     }
