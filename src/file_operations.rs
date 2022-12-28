@@ -1,37 +1,34 @@
-use std::fs;
+use std::{fs, io};
 use std::path::{Path, PathBuf};
+
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use thiserror::Error;
 
-pub fn files_in_directory(dir: &Path) -> Option<Vec<PathBuf>> {
-    let mut files = Vec::new();
-
-    for entry in fs::read_dir(dir).ok()? {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if path.is_file() {
-                files.push(path);
-            }
-        }
-    }
-
-    Some(files)
+#[derive(Error, Debug)]
+pub enum FileOperationsError {
+    #[error("An IO error occurred: {0}")]
+    Io(#[from] io::Error),
 }
 
-//todo: could this be turned into a iterator extension --> makes not much sense, lol
-pub fn shuffle<T>(mut vec: Vec<T>) -> Vec<T>{
-    vec.shuffle(&mut thread_rng());
-    vec
+pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
+    //From https://doc.rust-lang.org/std/fs/fn.read_dir.html
+    let mut entries = fs::read_dir(dir)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    Ok(entries)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use std::fs;
     use std::os::unix::fs::PermissionsExt;
     use std::path::{Path, PathBuf};
+
     use tempdir::TempDir;
+
+    use super::*;
 
     #[test]
     fn test_files_in_directory() {
@@ -68,5 +65,4 @@ mod tests {
         let result = files_in_directory(dir.as_path());
         assert_eq!(result, None);
     }
-
 }

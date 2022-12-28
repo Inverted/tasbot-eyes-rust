@@ -10,7 +10,9 @@ gif = "0.12.0"
 #rs_ws281x = "0.4.4"
 colored = "2"  # https://github.com/mackwic/colored
 rand = "0.8.5"
-tempdir = "0.3.7"  # just for testing, todo: is there a special dependecy type for
 log = "0.4.17"
+thiserror = "1.0"
 
-# dev depency
+[dev-dependencies] # just for testing
+cargo-edit = "0.11.7"
+tempdir = "0.3.7"

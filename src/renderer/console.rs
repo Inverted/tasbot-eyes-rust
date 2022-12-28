@@ -1,7 +1,10 @@
 use std::{io, time};
 use std::io::Write;
 use std::os::unix::raw::time_t;
+
 use colored::{ColoredString, Colorize};
+use log::info;
+
 use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::renderer::{Color, Renderer};
 
@@ -21,12 +24,12 @@ impl Renderer for ConsoleRendererSettings {
 
     fn play_colored(&self, anim: &Animation, color: Color) {
         for frame in &anim.frames {
-            show_frame(self, frame, Some(color)); //todo: why do I need the clone trait for wrapping a values in a some? --> because loop
+            show_frame(self, frame, Some(color));
         }
     }
 }
 
-fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<Color>){
+fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<Color>) {
     //clear console, todo: no ask: make argument
     if settings.clear_console {
         clear_console();
@@ -41,22 +44,14 @@ fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<C
 
 fn sleep_frame_delay(frame: &Frame) {
     let ms = time::Duration::from_millis((frame.delay * 10) as u64);
+    info!("Sleeping for delay for {} ms", ms.as_millis());
     std::thread::sleep(ms);
 }
 
-//todo: is there something like doxygen in rust? like:
-/**
- * Render a specific frame
- * @param frame Frame, that's supposed to be rendered
- */
-
-//cargo docs
 fn render_frame(frame: &Frame, color: Option<Color>) {
     for row in frame.pixels {
         for pixel in row {
-
             if !pixel_is_black(&pixel) {
-
                 match color {
                     None => {
                         print!("{}", FILLED_CHARACTERS.truecolor(pixel.r, pixel.g, pixel.b));
@@ -65,19 +60,17 @@ fn render_frame(frame: &Frame, color: Option<Color>) {
                         print!("{}", FILLED_CHARACTERS.truecolor(col.r, col.g, col.b));
                     }
                 }
-
             } else {
                 print!("{EMPTY_CHARACTERS}");
             }
         }
-        print!("\n"); //look up doku
+        print!("\n"); //look up doku if we need to flush
         io::stdout().flush().unwrap();
-        //io::stdout().write()
-
-        //todo: to flush or not flush?
+        //io::stdout().write() could be faster then print
     }
+    info!("Rendering okay")
 }
 
-fn clear_console(){
+fn clear_console() {
     print!("{}[2J", 27 as char);
 }

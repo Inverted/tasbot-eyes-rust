@@ -2,17 +2,29 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::path::PathBuf;
 
-use gif::DecodingError;
+use log::info;
+use thiserror::Error;
 
 const HEIGHT: usize = 8;
 const WIDTH: usize = 28;
+
+#[derive(Error, Debug)]
+pub enum GifError {
+    #[error("An IO error occurred: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("A decoder error occurred: {0}")]
+    Decode(#[from] gif::DecodingError),
+
+    #[error("An error occurred: {0}")]
+    Other(String),
+}
 
 pub struct Animation {
     pub frames: Vec<Frame>,
     pub grayscale: bool,
 }
 
-//always auto derive debug, when implementing Display
 #[derive(Eq, PartialEq, Debug)]
 pub struct Frame {
     pub pixels: [[Pixel; WIDTH]; HEIGHT],
@@ -48,24 +60,16 @@ impl Display for Frame {
     }
 }
 
-pub fn read_animation(path: &PathBuf) -> Option<Animation> {
+pub fn read_animation(path: &PathBuf) -> Result<Animation, GifError> {
+    info!("Attempt to read ({})", path.to_str().unwrap_or("Invalid path"));
 
     //Setup decoder
     let mut decoder = gif::DecodeOptions::new();
     decoder.set_color_output(gif::ColorOutput::RGBA);
 
     //Open and read file
-    let file = File::open(path).ok()?; //todo: ask, is .ok? nice?
-    let mut decoder = decoder.read_info(file).ok()?; //todo: and rather, whats a nice way to print out the issue
-
-    //todo: ist this nice? .ok_or(Err("Error here?")) ?
-
-    /*
-    ideal would be if I could return Some() when everything is alright or print out a custom defined
-    message with something like error()! and return None
-
-    thiserror crate
-     */
+    let file = File::open(path)?;
+    let mut decoder = decoder.read_info(file)?;
 
     //Interpret data
     let mut anim: Animation = Animation {
@@ -73,7 +77,7 @@ pub fn read_animation(path: &PathBuf) -> Option<Animation> {
         grayscale: true,
     };
 
-    while let Some(raw_frame) = decoder.read_next_frame().ok()? {
+    while let Some(raw_frame) = decoder.read_next_frame()? {
         let frame = read_frame(raw_frame);
 
         //A single frame with color is worth enough to mark the entire animation as colorful
@@ -84,7 +88,8 @@ pub fn read_animation(path: &PathBuf) -> Option<Animation> {
         anim.frames.push(frame);
     }
 
-    Some(anim)
+    info!("Read animation - Frame count: {}, Grayscale: {}", anim.frames.len(), anim.grayscale);
+    Ok(anim)
 }
 
 fn read_frame(raw_frame: &gif::Frame) -> Frame {
@@ -115,11 +120,9 @@ fn read_frame(raw_frame: &gif::Frame) -> Frame {
         frame.pixels[x][y] = pixel;
     }
 
+    info!("Read frame - Pixel count: {}, Delay: {} ms", frame.pixels.len() * frame.pixels[0].len(), frame.delay);
     frame
 }
-
-
-//todo: can this be done nicer? somehow with iterators?
 
 fn frame_is_grayscaled(frame: &Frame) -> bool {
     let mut result = true;
@@ -174,8 +177,7 @@ mod tests {
         // Test that the returned frame has the correct values
         let frame = read_frame(&raw_frame);
         assert_eq!(frame.delay, 0);
-        assert_eq!(frame.pixels, [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT]); //not allowed, binary operation `==` cannot be applied
-        //todo: ask, what to do here
+        assert_eq!(frame.pixels, [[Pixel { r: 0, g: 0, b: 0, a: 0 }; WIDTH]; HEIGHT]);
     }
 
 
