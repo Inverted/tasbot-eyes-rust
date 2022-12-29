@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, warn};
 use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, RawColor, StripType};
 use crate::color::Color;
 use crate::gif::{Animation, Frame};
@@ -22,8 +22,7 @@ todo arguments:
 
 //From: https://github.com/jakobrs/tasbot-display/blob/b8854b3f0dc096d4609124a28d8e400acd774b29/src/tasbot.rs
 #[rustfmt::skip]
-pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] =
-    [
+pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] = [
         [None, None, Some(0), Some(1), Some(2), Some(3), None, None, None, None, Some(101), Some(100), Some(99), Some(98), Some(97), Some(96), Some(95), Some(94), None, None, None, None, Some(105), Some(104), Some(103), Some(102), None, None],
         [None, Some(4), Some(5), Some(6), Some(7), Some(8), Some(9), None, None, Some(84), Some(85), Some(86), Some(87), Some(88), Some(89), Some(90), Some(91), Some(92), Some(93), None, None, Some(111), Some(110), Some(109), Some(108), Some(107), Some(106), None],
         [Some(10), Some(11), Some(12), Some(13), Some(14), Some(15), Some(16), Some(17), None, None, None, None, None, None, None, None, None, None, None, None, Some(119), Some(118), Some(117), Some(116), Some(115), Some(114), Some(113), Some(112)],
@@ -35,8 +34,8 @@ pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] =
     ];
 
 
-struct TASBotRendererSettings {
-    controller: Controller,
+pub struct TASBotRendererSettings {
+    pub controller: Controller,
 }
 
 impl Renderer for TASBotRendererSettings {
@@ -61,10 +60,15 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
             match index {
                 None => {}
                 Some(index) => {
+                    /*
+                        [255, 0, 0, 0] //blue
+                        [0, 255, 0, 0] //green
+                        [0, 0, 255, 0] //red
+                     */
                     let color : RawColor = [
-                        frame.pixels[y][x].r,
-                        frame.pixels[y][x].g,
                         frame.pixels[y][x].b,
+                        frame.pixels[y][x].g,
+                        frame.pixels[y][x].r,
                         frame.pixels[y][x].a,
                     ];
                     leds[index] = color
@@ -72,7 +76,11 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
             }
         }
     }
-    info!("Rendering okay")
+
+    match settings.controller.render(){
+        Ok(_) => {info!("Rendering okay")}
+        Err(_) => {warn!("Rendering failed")}
+    }
 }
 
 pub fn get_tasbot_eye_config(pin: u8, brightness: u8) -> LEDHardwareConfig{

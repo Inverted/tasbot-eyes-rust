@@ -16,7 +16,7 @@ use crate::logging::CONSOLE_LOGGER;
 use crate::renderer::{play_animation_from_path, Renderer};
 use crate::renderer::console::ConsoleRendererSettings;
 use crate::renderer::silent::SilentRendererSettings;
-use crate::renderer::tasbot_eyes::{get_tasbot_eye_config};
+use crate::renderer::tasbot_eyes::{get_tasbot_eye_config, TASBotRendererSettings};
 use crate::tasbot::{run_tasbot_eyes};
 
 mod file_operations;
@@ -39,7 +39,6 @@ mod led;
  */
 
 fn main() {
-    /*
     let args = ARGUMENTS.get_or_init(||read_arguments());
 
     //Setup things
@@ -52,30 +51,18 @@ fn main() {
 
     let silent: SilentRendererSettings = SilentRendererSettings{};
 
-    //Run the eyes
-    run_tasbot_eyes(cli);
-     */
+    match build_controller(get_tasbot_eye_config(18, 4)){
+        Ok(controller) => {
+            let tasbot_eyes: TASBotRendererSettings = TASBotRendererSettings{
+                controller,
+            };
 
-    // Construct a single channel controller. Note that the
-    // Controller is initialized by default and is cleaned up on drop
-
-    let mut controller = build_controller(get_tasbot_eye_config(18, 4));
-    match controller {
-        Ok(mut controller) => {
-            let leds = controller.leds_mut(0);
-
-            leds[0] = [0, 0, 255, 0];
-            leds[1] = [0, 255, 0, 0];
-            leds[2] = [255, 0, 0, 0];
-            leds[3] = [0, 0, 0, 255];
-
-            leds[4] = [0, 255, 255, 0];
-            leds[5] = [255, 255, 0, 0];
-            leds[6] = [255, 0, 255, 0];
-
-            controller.render().unwrap();
+            //Run the eyes
+            run_tasbot_eyes(tasbot_eyes);
         }
-        Err(_) => {}
+        Err(err) => {
+            warn!("Can't build controller, Error: {}", err.to_string());
+        }
     }
 }
 
