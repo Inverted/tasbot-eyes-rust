@@ -9,7 +9,7 @@ impl Renderer for SilentRendererSettings {
         warn!("Silent renderer")
     }
 
-    fn play_colored(&self, anim: &Animation, color: Color) {
+    fn play_colored(&self, anim: &Animation, color: &Color) {
         warn!("Silent renderer with color overwrite")
     }
 }

@@ -5,6 +5,11 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use thiserror::Error;
 
+pub const BASE_PATH: &str = "./gifs/base.gif";
+pub const STARTUP_PATH: &str = "./gifs/startup.gif";
+pub const OTHER_PATH: &str = "./gifs/others/";
+pub const BLINK_PATH: &str = "./gifs/blinks/";
+
 #[derive(Error, Debug)]
 pub enum FileOperationsError {
     #[error("An IO error occurred: {0}")]

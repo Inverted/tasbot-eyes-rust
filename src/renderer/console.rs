@@ -22,14 +22,16 @@ impl Renderer for ConsoleRendererSettings {
         }
     }
 
-    fn play_colored(&self, anim: &Animation, color: Color) {
+    fn play_colored(&self, anim: &Animation, color: &Color) {
+        let color = if anim.grayscale { Some(color) } else { None };
+
         for frame in &anim.frames {
-            show_frame(self, frame, Some(color));
+            show_frame(self, frame, color);
         }
     }
 }
 
-fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<Color>) {
+fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&Color>) {
     //clear console, todo: no ask: make argument
     if settings.clear_console {
         clear_console();
@@ -48,7 +50,7 @@ fn sleep_frame_delay(frame: &Frame) {
     std::thread::sleep(ms);
 }
 
-fn render_frame(frame: &Frame, color: Option<Color>) {
+fn render_frame(frame: &Frame, color: Option<&Color>) {
     for row in frame.pixels {
         for pixel in row {
             if !pixel_is_black(&pixel) {
