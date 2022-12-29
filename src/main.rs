@@ -6,15 +6,17 @@ use std::time::Duration;
 use log::{error, info, warn};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use rs_ws281x::{Controller, WS2811Error};
 use crate::arguments::{ARGUMENTS, default_arguments, read_arguments};
 use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN};
 
 use crate::file_operations::files_in_directory;
+use crate::led::build_controller;
 use crate::logging::CONSOLE_LOGGER;
 use crate::renderer::{play_animation_from_path, Renderer};
 use crate::renderer::console::ConsoleRendererSettings;
 use crate::renderer::silent::SilentRendererSettings;
-use crate::renderer::tasbot_eyes::run_test;
+use crate::renderer::tasbot_eyes::{get_tasbot_eye_config};
 use crate::tasbot::{run_tasbot_eyes};
 
 mod file_operations;
@@ -24,6 +26,7 @@ mod logging;
 mod tasbot;
 mod color;
 mod arguments;
+mod led;
 
 //itertools
 //cargo docs
@@ -36,10 +39,6 @@ mod arguments;
  */
 
 fn main() {
-
-    run_test();
-
-
     /*
     let args = ARGUMENTS.get_or_init(||read_arguments());
 
@@ -55,8 +54,25 @@ fn main() {
 
     //Run the eyes
     run_tasbot_eyes(cli);
-
      */
+
+    // Construct a single channel controller. Note that the
+    // Controller is initialized by default and is cleaned up on drop
+
+    let mut controller = build_controller(get_tasbot_eye_config(18, 4));
+    match controller {
+        Ok(mut controller) => {
+            let leds = controller.leds_mut(0);
+
+            leds[0] = [0, 0, 255, 0];
+            leds[1] = [0, 255, 0, 0];
+            leds[2] = [255, 0, 0, 0];
+            leds[3] = [0, 0, 0, 255];
+
+            controller.render().unwrap();
+        }
+        Err(_) => {}
+    }
 }
 
 fn setup_logger(level: log::LevelFilter) {

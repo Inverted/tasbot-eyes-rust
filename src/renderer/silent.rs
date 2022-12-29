@@ -5,7 +5,7 @@ use crate::renderer::{Color, Renderer};
 pub struct SilentRendererSettings {}
 
 impl Renderer for SilentRendererSettings {
-    fn play(&self, anim: &Animation) {
+    fn play(&mut self, anim: &Animation) {
         warn!("Silent renderer")
     }
 

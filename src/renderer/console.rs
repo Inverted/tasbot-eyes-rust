@@ -6,7 +6,7 @@ use colored::{ColoredString, Colorize};
 use log::info;
 
 use crate::gif::{Animation, Frame, pixel_is_black};
-use crate::renderer::{Color, Renderer};
+use crate::renderer::{Color, Renderer, sleep_frame_delay};
 
 const FILLED_CHARACTERS: &str = "██";
 const EMPTY_CHARACTERS: &str = "  ";
@@ -16,7 +16,7 @@ pub struct ConsoleRendererSettings {
 }
 
 impl Renderer for ConsoleRendererSettings {
-    fn play(&self, anim: &Animation) {
+    fn play(&mut self, anim: &Animation) {
         for frame in &anim.frames {
             show_frame(self, frame, None);
         }
@@ -42,12 +42,6 @@ fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&
 
     //sleep base on delay from gif
     sleep_frame_delay(frame);
-}
-
-fn sleep_frame_delay(frame: &Frame) {
-    let ms = time::Duration::from_millis((frame.delay * 10) as u64);
-    info!("Sleeping for delay for {} ms", ms.as_millis());
-    std::thread::sleep(ms);
 }
 
 fn render_frame(frame: &Frame, color: Option<&Color>) {

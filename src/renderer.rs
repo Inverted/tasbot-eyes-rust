@@ -4,19 +4,20 @@ pub mod tasbot_eyes;
 
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
+use std::time;
 
 use log::{info, warn};
 use crate::color::Color;
 
-use crate::gif::{Animation, GifError, read_animation};
+use crate::gif::{Animation, Frame, GifError, read_animation};
 
 pub trait Renderer {
-    fn play(&self, anim: &Animation);
+    fn play(&mut self, anim: &Animation);
     //todo: no ask: animation should be consumed, ig
     fn play_colored(&self, anim: &Animation, color: &Color);
 }
 
-pub fn play_animation_from_path<T: Renderer>(renderer: &T, path: PathBuf, color: Option<&Color>) {
+pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, color: Option<&Color>) {
     let anim = read_animation(&path);
     match anim {
         Ok(anim) => {
@@ -36,4 +37,10 @@ pub fn play_animation_from_path<T: Renderer>(renderer: &T, path: PathBuf, color:
             warn!("Can't read ({}): {}", path.to_str().unwrap_or("Invalid path"), err.to_string());
         }
     }
+}
+
+pub fn sleep_frame_delay(frame: &Frame) {
+    let ms = time::Duration::from_millis((frame.delay * 10) as u64);
+    info!("Sleeping for delay for {} ms", ms.as_millis());
+    std::thread::sleep(ms);
 }

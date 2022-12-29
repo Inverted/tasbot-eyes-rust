@@ -14,31 +14,31 @@ use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, G
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
-pub fn run_tasbot_eyes<T: Renderer>(renderer: T) {
+pub fn run_tasbot_eyes<T: Renderer>(mut renderer: T) {
     let default_args = default_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
     //Startup sequence
     if !args.skip_startup_animation {
-        startup(&renderer);
+        startup(&mut renderer);
     }
 
     let mut queue: Vec<PathBuf> = Vec::new();
     loop {
-        show_base(&renderer, args.color_overwrite && args.color_overwrite_all);
-        do_blink_cycle(&renderer, args.color_overwrite && args.color_overwrite_all);
-        show_next_animation(&renderer, &mut queue, args.color_overwrite);
+        show_base(&mut renderer, args.color_overwrite && args.color_overwrite_all);
+        do_blink_cycle(&mut renderer, args.color_overwrite && args.color_overwrite_all);
+        show_next_animation(&mut renderer, &mut queue, args.color_overwrite);
     }
 }
 
-fn startup<T: Renderer>(renderer: &T) {
+fn startup<T: Renderer>(renderer: &mut T) {
     info!("Play startup animation");
     let startup_anim_path = Path::new(STARTUP_PATH);
     play_animation_from_path(renderer, startup_anim_path.to_path_buf(), None);
     info!("Done playing startup animation");
 }
 
-fn show_base<T: Renderer>(renderer: &T, ran_color: bool) {
+fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Play base animation");
     let default_args = default_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
@@ -53,7 +53,7 @@ fn show_base<T: Renderer>(renderer: &T, ran_color: bool) {
     info!("Done playing base animation");
 }
 
-fn do_blink_cycle<T: Renderer>(renderer: &T, ran_color: bool) {
+fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Enter blink cycle");
     let default_args = default_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
@@ -86,7 +86,7 @@ fn do_blink_cycle<T: Renderer>(renderer: &T, ran_color: bool) {
     info!("Exit blink cycle");
 }
 
-fn show_next_animation<T: Renderer>(renderer: &T, anim_queue: &mut Vec<PathBuf>, ran_color: bool) {
+fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathBuf>, ran_color: bool) {
     info!("Enter playing animation");
     let path = anim_queue.pop();
 
