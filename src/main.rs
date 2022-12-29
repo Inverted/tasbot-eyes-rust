@@ -14,6 +14,7 @@ use crate::logging::CONSOLE_LOGGER;
 use crate::renderer::{play_animation_from_path, Renderer};
 use crate::renderer::console::ConsoleRendererSettings;
 use crate::renderer::silent::SilentRendererSettings;
+use crate::renderer::tasbot_eyes::run_test;
 use crate::tasbot::{run_tasbot_eyes};
 
 mod file_operations;
@@ -35,6 +36,11 @@ mod arguments;
  */
 
 fn main() {
+
+    run_test();
+
+
+    /*
     let args = ARGUMENTS.get_or_init(||read_arguments());
 
     //Setup things
@@ -49,6 +55,8 @@ fn main() {
 
     //Run the eyes
     run_tasbot_eyes(cli);
+
+     */
 }
 
 fn setup_logger(level: log::LevelFilter) {

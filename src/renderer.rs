@@ -1,5 +1,6 @@
 pub mod silent;
 pub mod console;
+pub mod tasbot_eyes;
 
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
