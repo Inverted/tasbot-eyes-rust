@@ -2,7 +2,7 @@ use log::{info, warn};
 use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, RawColor, StripType};
 
 use crate::color::Color;
-use crate::gif::{Animation, Frame};
+use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
 
@@ -67,12 +67,6 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
             match index {
                 None => {}
                 Some(index) => {
-                    /*
-                        [255, 0, 0, 0] //blue
-                        [0, 255, 0, 0] //green
-                        [0, 0, 255, 0] //red
-                     */
-
                     let mut rend_color: RawColor;
                     match color {
 
@@ -82,18 +76,22 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
                                 frame.pixels[y][x].b,
                                 frame.pixels[y][x].g,
                                 frame.pixels[y][x].r,
-                                frame.pixels[y][x].a,
+                                0,
                             ];
                         }
 
                         //Use color given
                         Some(color) => {
-                            rend_color = [
-                                color.b,
-                                color.g,
-                                color.r,
-                                0,
-                            ];
+                            if pixel_is_black(&frame.pixels[y][x]) {
+                                rend_color = [0, 0, 0, 0];
+                            } else {
+                                rend_color = [
+                                    color.b,
+                                    color.g,
+                                    color.r,
+                                    0,
+                                ];
+                            }
                         }
                     }
                     leds[index] = rend_color;

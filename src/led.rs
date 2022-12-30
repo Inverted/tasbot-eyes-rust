@@ -1,6 +1,7 @@
 use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, StripType, WS2811Error};
 
 /*
+    [0, 0, 0, 255] //white
     [0, 0, 255, 0] //red
     [0, 255, 0, 0] //green
     [255, 0, 0, 0] //blue
