@@ -51,7 +51,7 @@ impl Renderer for TASBotRendererSettings {
     }
 
     fn clear(&mut self) {
-        todo!()
+        clear(self);
     }
 }
 
@@ -61,9 +61,6 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
     //Index based for loops, as we need the index for the translation
     for x in 0..SCREEN_WIDTH {
         for y in 0..SCREEN_HEIGHT {
-            //x: 0 to 27
-            //y: 0 to 7
-
             let index = PIXEL_POSITIONS[y][x];
             match index {
                 None => {}
@@ -73,13 +70,31 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
                         [0, 255, 0, 0] //green
                         [0, 0, 255, 0] //red
                      */
-                    let color: RawColor = [
-                        frame.pixels[y][x].b,
-                        frame.pixels[y][x].g,
-                        frame.pixels[y][x].r,
-                        frame.pixels[y][x].a,
-                    ];
-                    leds[index] = color;
+
+                    let mut rend_color: RawColor;
+                    match color {
+
+                        //Use color of frame
+                        None => {
+                            rend_color = [
+                                frame.pixels[y][x].b,
+                                frame.pixels[y][x].g,
+                                frame.pixels[y][x].r,
+                                frame.pixels[y][x].a,
+                            ];
+                        }
+
+                        //Use color given
+                        Some(color) => {
+                            rend_color = [
+                                color.b,
+                                color.g,
+                                color.r,
+                                0,
+                            ];
+                        }
+                    }
+                    leds[index] = rend_color;
                 }
             }
         }

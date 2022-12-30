@@ -30,9 +30,14 @@ pub fn default_arguments() -> Arguments{
         min_delay: 4000,
         max_delay: 6000,
 
-        color_overwrite: false,
+        //todo: clean again
+        color_overwrite: true,
         color_overwrite_all: false,
-        overwrite_color_default: None,
+        overwrite_color_default: Some(&Color {
+            r: 128,
+            g: 0,
+            b: 255,
+        }),
     }
 }
 

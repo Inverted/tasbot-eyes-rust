@@ -87,7 +87,7 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
 }
 
 fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathBuf>, ran_color: bool) {
-    info!("Enter playing animation");
+    info!("Play other animation");
     let path = anim_queue.pop();
 
     match path {
@@ -125,7 +125,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathB
             play_animation_from_path(renderer, path, color);
         }
     }
-    info!("Exit play animation");
+    info!("Done playing other animation");
 }
 
 fn blink_sleep(delay: u64) {
