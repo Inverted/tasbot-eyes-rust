@@ -61,7 +61,7 @@ fn main() {
             run_tasbot_eyes(tasbot_eyes);
         }
         Err(err) => {
-            warn!("Can't build controller, Error: {}", err.to_string());
+            error!("Can't build controller, Error: {}", err.to_string());
         }
     }
 }

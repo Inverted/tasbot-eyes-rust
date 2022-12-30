@@ -17,7 +17,11 @@ pub struct LEDHardwareConfig {
 }
 
 pub fn build_controller(config: LEDHardwareConfig) -> Result<Controller, WS2811Error> {
+    #[cfg(not(target_arch = "arm"))]
+    return Err(WS2811Error::HwNotSupported);
+
     // Build a single channel controller
+    #[cfg(target_arch = "arm")]
     ControllerBuilder::new()
         .freq(config.frequenz)
         .dma(config.dma)

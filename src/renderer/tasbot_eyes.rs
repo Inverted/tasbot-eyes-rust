@@ -53,9 +53,15 @@ impl Renderer for TASBotRendererSettings {
 fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Option<&Color>) {
     let leds = settings.controller.leds_mut(0);
 
+    //todo: indexing is wrong
+
     //Index based for loops, as we need the index for the translation
     for y in 0..frame.pixels.len() {
         for x in 0..frame.pixels[y].len() {
+
+            println!("{}:{}", x,y);
+
+            /*
             let index = PIXEL_POSITIONS[x][y];
             match index {
                 None => {}
@@ -74,9 +80,11 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
                     leds[index] = color
                 }
             }
+             */
         }
     }
 
+    #[cfg(target_arch = "arm")]
     match settings.controller.render(){
         Ok(_) => {info!("Rendering okay")}
         Err(_) => {warn!("Rendering failed")}
