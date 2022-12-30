@@ -59,10 +59,14 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
     for y in 0..frame.pixels.len() {
         for x in 0..frame.pixels[y].len() {
 
-            println!("{}:{}", x,y);
+            let index = PIXEL_POSITIONS[x][y];
+
+            println!("{}:{} -> {}", x,y, index.unwrap());
+
+            //x 0 bis 27
+            //y 0 bis 7
 
             /*
-            let index = PIXEL_POSITIONS[x][y];
             match index {
                 None => {}
                 Some(index) => {
