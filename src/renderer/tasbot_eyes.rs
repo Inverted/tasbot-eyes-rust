@@ -69,7 +69,7 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
 
             match index {
                 None => {
-                    println!("{}:{} -> {}", x,y, None);
+                    println!("{}:{} -> None", x,y);
                 }
                 Some(index) => {
 
