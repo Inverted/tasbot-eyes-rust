@@ -15,6 +15,7 @@ pub trait Renderer {
     fn play(&mut self, anim: &Animation);
     //todo: no ask: animation should be consumed, ig
     fn play_colored(&self, anim: &Animation, color: &Color);
+    fn clear(&mut self);
 }
 
 pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, color: Option<&Color>) {

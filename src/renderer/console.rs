@@ -29,6 +29,10 @@ impl Renderer for ConsoleRendererSettings {
             show_frame(self, frame, color);
         }
     }
+
+    fn clear(&mut self) {
+        clear_console();
+    }
 }
 
 fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&Color>) {

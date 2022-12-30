@@ -1,5 +1,8 @@
+use std::cell::RefCell;
 use std::mem::transmute;
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use std::thread;
 use std::time::Duration;
 
@@ -32,6 +35,8 @@ mod led;
 //cargo docs
 //always auto derive debug, when implementing Display
 //todo: subcommands with clap
+//clear on exit
+//cfg for arm not working
 
 /*
 ? is propagating
@@ -51,11 +56,17 @@ fn main() {
 
     let silent: SilentRendererSettings = SilentRendererSettings{};
 
+
     match build_controller(get_tasbot_eye_config(18, 4)){
         Ok(controller) => {
             let tasbot_eyes: TASBotRendererSettings = TASBotRendererSettings{
                 controller,
             };
+
+            /*
+            let celled_rend = Rc::new(tasbot_eyes);
+            setup_ctrlc(celled_rend.clone());
+             */
 
             //Run the eyes
             run_tasbot_eyes(tasbot_eyes);
@@ -71,3 +82,11 @@ fn setup_logger(level: log::LevelFilter) {
     log::set_max_level(level);
     println!("[APP] Set log level to {}", level);
 }
+
+/*
+fn setup_ctrlc<T: Renderer>(renderer: Rc<T>){
+    ctrlc::set_handler(move || {
+        renderer.deref().clear();
+    }).expect("Error setting Ctrl-C handler");
+}
+ */

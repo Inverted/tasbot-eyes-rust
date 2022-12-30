@@ -1,4 +1,5 @@
 use log::{debug, info, warn};
+
 use crate::gif::Animation;
 use crate::renderer::{Color, Renderer};
 
@@ -6,10 +7,10 @@ pub struct SilentRendererSettings {}
 
 impl Renderer for SilentRendererSettings {
     fn play(&mut self, anim: &Animation) {
-        warn!("Silent renderer")
+        debug!("Silent renderer")
     }
 
-    fn play_colored(&self, anim: &Animation, color: &Color) {
-        warn!("Silent renderer with color overwrite")
-    }
+    fn play_colored(&self, anim: &Animation, color: &Color) { debug!("Silent renderer with color overwrite") }
+
+    fn clear(&mut self) { debug!("Clear console") }
 }
