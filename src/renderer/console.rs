@@ -22,7 +22,7 @@ impl Renderer for ConsoleRendererSettings {
         }
     }
 
-    fn play_colored(&self, anim: &Animation, color: &Color) {
+    fn play_colored(&mut self, anim: &Animation, color: &Color) {
         let color = if anim.grayscale { Some(color) } else { None };
 
         for frame in &anim.frames {

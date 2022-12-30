@@ -46,8 +46,10 @@ impl Renderer for TASBotRendererSettings {
         }
     }
 
-    fn play_colored(&self, anim: &Animation, color: &Color) {
-        todo!()
+    fn play_colored(&mut self, anim: &Animation, color: &Color) {
+        for frame in &anim.frames {
+            show_frame(self, frame, Some(color));
+        }
     }
 
     fn clear(&mut self) {
