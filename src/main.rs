@@ -55,8 +55,7 @@ fn main() {
     };
 
     let silent: SilentRendererSettings = SilentRendererSettings{};
-
-
+    
     match build_controller(get_tasbot_eye_config(18, 4)){
         Ok(controller) => {
             let tasbot_eyes: TASBotRendererSettings = TASBotRendererSettings{

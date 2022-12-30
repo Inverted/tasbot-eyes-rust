@@ -47,8 +47,10 @@ impl Renderer for TASBotRendererSettings {
     }
 
     fn play_colored(&mut self, anim: &Animation, color: &Color) {
+        let color = if anim.grayscale { Some(color) } else { None };
+
         for frame in &anim.frames {
-            show_frame(self, frame, Some(color));
+            show_frame(self, frame, color);
         }
     }
 
