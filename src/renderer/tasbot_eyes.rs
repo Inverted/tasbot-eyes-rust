@@ -66,10 +66,16 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
             //x 0 bis 27
             //y 0 bis 7
 
-            /*
+
             match index {
-                None => {}
+                None => {
+                    println!("{}:{} -> {}", x,y, None);
+                }
                 Some(index) => {
+
+                    println!("{}:{} -> {}", x,y, index);
+
+                    /*
                     /*
                         [255, 0, 0, 0] //blue
                         [0, 255, 0, 0] //green
@@ -82,9 +88,10 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
                         frame.pixels[y][x].a,
                     ];
                     leds[index] = color
+                     */
                 }
             }
-             */
+
         }
     }
 
