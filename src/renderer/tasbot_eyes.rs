@@ -84,7 +84,7 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
         }
     }
 
-    #[cfg(target_arch = "arm")]
+    //#[cfg(target_arch = "arm")]
     match settings.controller.render(){
         Ok(_) => {info!("Rendering okay")}
         Err(_) => {warn!("Rendering failed")}
