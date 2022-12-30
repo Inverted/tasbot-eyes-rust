@@ -58,15 +58,10 @@ fn render_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Opt
     //Index based for loops, as we need the index for the translation
     for y in 0..frame.pixels.len() {
         for x in 0..frame.pixels[y].len() {
+            //x: 0 to 27
+            //y: 0 to 7
 
             let index = PIXEL_POSITIONS[x][y];
-
-            println!("{}:{} -> {}", x,y, index.unwrap());
-
-            //x 0 bis 27
-            //y 0 bis 7
-
-
             match index {
                 None => {
                     println!("{}:{} -> None", x,y);
