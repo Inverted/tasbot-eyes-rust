@@ -58,8 +58,6 @@ impl Renderer for TASBotRendererSettings {
 fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Option<&Color>) {
     let leds = settings.controller.leds_mut(0);
 
-    //todo: indexing is wrong
-
     //Index based for loops, as we need the index for the translation
     for x in 0..SCREEN_WIDTH {
         for y in 0..SCREEN_HEIGHT {
@@ -95,10 +93,9 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
 }
 
 fn clear(settings: &mut TASBotRendererSettings) {
-    for _ in 0..SCREEN_WIDTH {
-        for _ in 0..SCREEN_HEIGHT {
-            leds[index] = [0, 0, 0, 0];
-        }
+    let leds = settings.controller.leds_mut(0);
+    for led in leds {
+        *led = [0, 0, 0, 0];
     }
 
     render(settings);

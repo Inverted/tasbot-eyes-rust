@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 gif = "0.12.0"
-rs_ws281x = "0.4.4"
-colored = "2"  # https://github.com/mackwic/colored
+rs_ws281x = "0.4.4"     # https://github.com/rpi-ws281x/rpi-ws281x-rust
+colored = "2"           # https://github.com/mackwic/colored
 rand = "0.8.5"
 log = "0.4.17"
 thiserror = "1.0.38"
