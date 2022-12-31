@@ -47,9 +47,9 @@ mod led;
  */
 
 fn main() {
-    build_arguments();
+    //build_arguments();
 
-    /*
+
     let args = ARGUMENTS.get_or_init(|| read_arguments());
     let running = Arc::new(AtomicBool::new(true));
 
@@ -73,7 +73,7 @@ fn main() {
         }
     }
 
-     */
+
 }
 
 fn setup_logger(level: log::LevelFilter) {
