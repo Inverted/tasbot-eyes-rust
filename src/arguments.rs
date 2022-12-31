@@ -23,7 +23,7 @@ pub struct Arguments{
     ///Skip the startup animation
     pub skip_startup_animation: bool,
 
-    #[clap(short='s', long, required=false, val_names=["factor"])]
+    #[clap(short='s', long, required=false)]
     ///Set playback speed. Needs to be bigger than 0
     pub playback_speed: f32, //factor
 
