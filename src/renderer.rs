@@ -1,6 +1,7 @@
 pub mod silent;
 pub mod console;
 pub mod tasbot_eyes;
+pub mod led_matrix;
 
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -18,7 +19,7 @@ pub trait Renderer {
     fn clear(&mut self);
 }
 
-pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, color: Option<&Color>) {
+pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, color: Option<Color>) {
     let anim = read_animation(&path);
     match anim {
         Ok(anim) => {

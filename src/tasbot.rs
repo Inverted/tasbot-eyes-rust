@@ -1,5 +1,8 @@
+use std::cell::{Ref, RefCell};
 use std::fmt::Arguments;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
 
@@ -8,13 +11,13 @@ use once_cell::sync::Lazy;
 use rand::{Rng, thread_rng};
 use rand::seq::SliceRandom;
 
-use crate::arguments;
+use crate::{arguments};
 use crate::arguments::{ARGUMENTS, default_arguments};
 use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
-pub fn run_tasbot_eyes<T: Renderer>(mut renderer: T) {
+pub fn run_eyes<T: Renderer>(mut renderer: T, running: Arc<AtomicBool>) {
     let default_args = default_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
@@ -24,11 +27,13 @@ pub fn run_tasbot_eyes<T: Renderer>(mut renderer: T) {
     }
 
     let mut queue: Vec<PathBuf> = Vec::new();
-    loop {
+    while running.load(Ordering::SeqCst) {
         show_base(&mut renderer, args.color_overwrite && args.color_overwrite_all);
         do_blink_cycle(&mut renderer, args.color_overwrite && args.color_overwrite_all);
         show_next_animation(&mut renderer, &mut queue, args.color_overwrite);
     }
+
+    renderer.clear();
 }
 
 fn startup<T: Renderer>(renderer: &mut T) {
@@ -121,7 +126,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathB
         }
         Some(path) => {
             //Queue is not empty, play animation
-            let color = if ran_color { get_random_color(&DEFAULT_PALETTE) } else { None };
+            let color = if ran_color { Some(get_random_color(&DEFAULT_PALETTE)) } else { None };
             play_animation_from_path(renderer, path, color);
         }
     }

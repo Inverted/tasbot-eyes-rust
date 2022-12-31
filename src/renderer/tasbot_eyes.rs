@@ -6,20 +6,21 @@ use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
 
+//fixed values
 const TARGET_FREQ: u32 = 800_000;
 const DMA: u8 = 10;
 const STRIP_TYPE: StripType = StripType::Sk6812;
 const INVERTED: bool = false;
 
+//todo: as args
+//default values but not fixed
+const GPIO_PIN: u8 = 10;
+const BRIGHTNESS: u8 = 4;
+
 pub const SCREEN_WIDTH: usize = 28;
 pub const SCREEN_HEIGHT: usize = 8;
 pub const NUM_PIXELS: u32 = 154;
 
-/*
-todo arguments:
-#define GPIO_PIN                10
-#define BRIGHTNESS              4
- */
 
 //From: https://github.com/jakobrs/tasbot-display/blob/b8854b3f0dc096d4609124a28d8e400acd774b29/src/tasbot.rs
 #[rustfmt::skip]
@@ -126,14 +127,14 @@ fn render(settings: &mut TASBotRendererSettings) {
     }
 }
 
-pub fn get_tasbot_eye_config(pin: u8, brightness: u8) -> LEDHardwareConfig {
+pub fn get_tasbot_eye_config(pin: Option<u8>, brightness: Option<u8>) -> LEDHardwareConfig {
     LEDHardwareConfig {
         frequenz: TARGET_FREQ,
         dma: DMA as i32,
-        pin: pin as i32,
+        pin: pin.unwrap_or(GPIO_PIN) as i32,
         count: NUM_PIXELS as i32,
         strip_type: STRIP_TYPE,
-        brightness: brightness,
+        brightness: brightness.unwrap_or(BRIGHTNESS),
         inverted: INVERTED,
     }
 }
