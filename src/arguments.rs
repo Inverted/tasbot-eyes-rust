@@ -118,14 +118,14 @@ impl Display for Arguments {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 
         let mut result = String::new();
-        result.push_str(&*format!("-Skip startup animation: {}\n", self.skip_startup_animation.to_string()));
-        result.push_str(&*format!("-Playback speed: {}\n", self.playback_speed));
-        result.push_str(&*format!("-Maximum count of blinks: {}\n", self.max_blinks));
-        result.push_str(&*format!("-Minimum delay between blinks: {}\n", self.min_delay));
-        result.push_str(&*format!("-Maximum delay between blinks: {}\n", self.max_delay));
-        result.push_str(&*format!("-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
-        result.push_str(&*format!("-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
-        result.push_str(&*format!("-Color for base, blinks and grayscale animations: {}", self.default_color));
+        result.push_str(&*format!("\t-Skip startup animation: {}\n", self.skip_startup_animation.to_string()));
+        result.push_str(&*format!("\t-Playback speed: {}\n", self.playback_speed));
+        result.push_str(&*format!("\t-Maximum count of blinks: {}\n", self.max_blinks));
+        result.push_str(&*format!("\t-Minimum delay between blinks: {} ms\n", self.min_delay));
+        result.push_str(&*format!("\t-Maximum delay between blinks: {} ms\n", self.max_delay));
+        result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
+        result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
+        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: {}", self.default_color));
 
         write!(f, "{}", result)
     }

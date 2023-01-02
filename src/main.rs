@@ -59,7 +59,7 @@ fn main() {
     let args = ARGUMENTS.get().unwrap_or(&fallback_args);
 
     //Setup things
-    setup_ctrlc(running.clone());
+    //setup_ctrlc(running.clone());
 
     //Start with right renderer
     match &args.renderer {
@@ -244,6 +244,7 @@ fn setup_logger(level: String) {
     info!("Set log level to {}", log_level.to_string());
 }
 
+//todo: this works badly
 fn setup_ctrlc(running: Arc<AtomicBool>) {
     ctrlc::set_handler(move || {
         running.store(false, Ordering::SeqCst);
