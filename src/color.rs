@@ -1,11 +1,12 @@
 use std::fmt::{Display, Formatter};
+use std::num::ParseIntError;
 
 use log::warn;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use crate::arguments;
-use crate::arguments::{ARGUMENTS, default_arguments};
+use crate::arguments::{ARGUMENTS, fallback_arguments};
 
 pub const RED: Color = Color { r: 255, g: 0, b: 0 };
 pub const YELLOW: Color = Color { r: 255, g: 255, b: 0 };
@@ -47,11 +48,19 @@ pub fn get_random_color(colors: &[Color]) -> Color {
 }
 
 pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
-    let default_args = default_arguments();
+    let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
+    let def_color = match u32::from_str_radix(&args.default_color, 16){
+        Ok(col) => {col}
+        Err(e) => {
+            warn!("Given color is not in a valid format. Using default color, Error: {}", e.to_string());
+            0xFFFFFF
+        }
+    };
+
     //If default color set, use it, else keep the animations color
-    let color = if args.default_color != 0x000000 { Some(hex_to_rgb(args.default_color)) } else { None };
+    let color = if def_color != 0xFFFFFF { Some(hex_to_rgb(def_color)) } else { None };
 
     //However, also check, if a random color should be chosen. If not, use whatever the last line yielded
     if use_ran_color { Some(get_random_color(&DEFAULT_PALETTE)) } else { color }

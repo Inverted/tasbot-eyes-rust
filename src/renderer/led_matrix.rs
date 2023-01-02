@@ -15,7 +15,6 @@ use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
 use crate::renderer::tasbot_eyes::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
-//todo: as args
 //default values but not fixed
 const BRIGHTNESS: u8 = 4;
 const TARGET_FREQ: u32 = 800_000;
@@ -29,8 +28,6 @@ pub enum LEDMatrixError {
 }
 
 pub struct LEDMatrixRenderer {
-    pub width: usize,
-    pub height: usize,
     pub controller: Controller,
 }
 

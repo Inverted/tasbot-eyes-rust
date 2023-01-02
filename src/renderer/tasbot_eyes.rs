@@ -14,8 +14,8 @@ const INVERTED: bool = false;
 
 //todo: as args
 //default values but not fixed
-const GPIO_PIN: u8 = 10;
-const BRIGHTNESS: u8 = 4;
+pub const GPIO_PIN: u8 = 10;
+pub const BRIGHTNESS: u8 = 4;
 
 pub const SCREEN_WIDTH: usize = 28;
 pub const SCREEN_HEIGHT: usize = 8;

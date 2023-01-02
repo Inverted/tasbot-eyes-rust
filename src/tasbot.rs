@@ -12,13 +12,13 @@ use rand::{Rng, thread_rng};
 use rand::seq::SliceRandom;
 
 use crate::{arguments};
-use crate::arguments::{ARGUMENTS, default_arguments};
+use crate::arguments::{ARGUMENTS, fallback_arguments};
 use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
 pub fn run_eyes<T: Renderer>(mut renderer: T, running: Arc<AtomicBool>) {
-    let default_args = default_arguments();
+    let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
     //Startup sequence
@@ -45,7 +45,7 @@ fn startup<T: Renderer>(renderer: &mut T) {
 
 fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Play base animation");
-    let default_args = default_arguments();
+    let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
     //skip base, when no blinks at all
@@ -60,7 +60,7 @@ fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {
 
 fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Enter blink cycle");
-    let default_args = default_arguments();
+    let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
     let blink_amount = get_blink_amount(args.max_blinks);
@@ -149,11 +149,11 @@ fn get_blink_delay(min_delay: u16, max_delay: u16, playback_speed: f32) -> u64 {
 }
 
 fn get_blink_amount(max_blinks: u8) -> u8 {
-    if max_blinks == 0 {
+    if max_blinks <= 0 {
         return 0;
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
     rng.gen_range(1..=max_blinks) //return
 }
 
