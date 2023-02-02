@@ -1,7 +1,7 @@
 use std::cell::{Ref, RefCell};
 use std::fmt::Arguments;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, LockResult, Mutex, MutexGuard};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
@@ -17,7 +17,7 @@ use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, G
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
-pub fn run_eyes<T: Renderer>(mut renderer: T, running: Arc<AtomicBool>) {
+pub fn run_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
@@ -26,11 +26,18 @@ pub fn run_eyes<T: Renderer>(mut renderer: T, running: Arc<AtomicBool>) {
         startup(&mut renderer);
     }
 
-    let mut queue: Vec<PathBuf> = Vec::new();
+    //Normal flow
     while running.load(Ordering::SeqCst) {
         show_base(&mut renderer, args.color_overwrite && args.color_overwrite_all);
         do_blink_cycle(&mut renderer, args.color_overwrite && args.color_overwrite_all);
-        show_next_animation(&mut renderer, &mut queue, args.color_overwrite);
+
+        let que = queue.lock();
+        match que {
+            Ok(q) => {
+                show_next_animation(&mut renderer, q, args.color_overwrite);
+            }
+            Err(e) => error!("Can't lock queue: {}", e.to_string())
+        }
     }
 
     renderer.clear();
@@ -83,7 +90,7 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
                 }
             }
             Err(err) => {
-                warn!("Can't read files in directory ({}), Error: {}", blink_anims_path.to_str().unwrap_or("Invalid path"), err.to_string());
+                warn!("Can't read files in directory ({}): {}", blink_anims_path.to_str().unwrap_or("Invalid path"), err.to_string());
             }
         }
         blink_sleep(get_blink_delay(args.min_delay, args.max_delay, args.playback_speed) as u64);
@@ -91,10 +98,10 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Exit blink cycle");
 }
 
-fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathBuf>, ran_color: bool) {
+fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<PathBuf>>, ran_color: bool) {
     info!("Play other animation");
-    let path = anim_queue.pop();
 
+    let path = queue.pop();
     match path {
         None => {
             //Queue is empty, create a new one
@@ -102,17 +109,20 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathB
             let files = files_in_directory(other_path);
             match files {
                 Ok(mut files) => {
+                    //Shuffle all files
                     let mut rng = thread_rng();
                     files.shuffle(&mut rng);
 
-                    anim_queue.clear();
-                    anim_queue.extend(files);
+                    //Make space for queue
+                    queue.clear();
+                    queue.extend(files);
 
-                    if anim_queue.len() > 0 {
+                    //If new queue is not empty, start over again
+                    if queue.len() > 0 {
                         info!("Created new queue");
 
                         //Recursive call itself, to actually show a animation
-                        show_next_animation(renderer, anim_queue, ran_color);
+                        show_next_animation(renderer, queue, ran_color);
                     } else {
                         let message = "Directory seems empty, please check!";
                         error!("{}", message);
@@ -130,6 +140,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, anim_queue: &mut Vec<PathB
             play_animation_from_path(renderer, path, color);
         }
     }
+
     info!("Done playing other animation");
 }
 

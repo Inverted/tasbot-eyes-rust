@@ -16,11 +16,23 @@ pub enum FileOperationsError {
     Io(#[from] io::Error),
 }
 
+
 pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
-    //From https://doc.rust-lang.org/std/fs/fn.read_dir.html
+    //Modified https://doc.rust-lang.org/std/fs/fn.read_dir.html
+
     let mut entries = fs::read_dir(dir)?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
+        .filter_map(|res| {
+            if let Ok(entry) = res {
+                if entry.metadata().map(|meta| meta.is_file()).unwrap_or(false) {
+                    Some(entry.path())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<PathBuf>>();
 
     Ok(entries)
 }

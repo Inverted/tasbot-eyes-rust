@@ -54,7 +54,7 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     let def_color = match u32::from_str_radix(&args.default_color, 16){
         Ok(col) => {col}
         Err(e) => {
-            warn!("Given color is not in a valid format. Using default color, Error: {}", e.to_string());
+            warn!("Given color is not in a valid format. Using default color: {}", e.to_string());
             0xFFFFFF
         }
     };

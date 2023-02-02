@@ -1,12 +1,13 @@
-use std::{env, thread};
+use std::{env, thread, time};
 use std::cell::{Cell, RefCell};
 use std::mem::transmute;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+use colored::Colorize;
 
 use log::{error, info, LevelFilter, warn};
 use rand::seq::SliceRandom;
@@ -19,6 +20,7 @@ use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, G
 use crate::file_operations::files_in_directory;
 use crate::led::{build_controller, LEDHardwareConfig};
 use crate::logging::CONSOLE_LOGGER;
+use crate::network::start_recv_file_server;
 use crate::renderer::{play_animation_from_path, Renderer};
 use crate::renderer::console::ConsoleRendererSettings;
 use crate::renderer::led_matrix::{get_led_matrix_config, LEDMatrixError, LEDMatrixRenderer};
@@ -34,6 +36,7 @@ mod tasbot;
 mod color;
 mod arguments;
 mod led;
+mod network;
 
 //itertools
 //cargo docs
@@ -48,11 +51,14 @@ mod led;
  */
 
 pub const ENV_LOG_LEVEL: &str = "TASBOT_EYES_LOG_LEVEL";
+pub const LOG_LEVEL_FALLBACK: &str = "trace";
 
 fn main() {
-    let log_level = env::var(ENV_LOG_LEVEL).unwrap_or("warn".to_string());
+    //Setup logger
+    let log_level = env::var(ENV_LOG_LEVEL).unwrap_or(get_fallback_log_level());
     setup_logger(log_level);
 
+    //Process arguments
     init_arguments();
     let running = Arc::new(AtomicBool::new(true));
     let fallback_args = fallback_arguments();
@@ -61,7 +67,14 @@ fn main() {
     //Setup things
     //setup_ctrlc(running.clone());
 
-    //Start with right renderer
+    //Setup queue and network thread
+    let queue: Arc<Mutex<Vec<PathBuf>>> = Arc::new(Mutex::new(Vec::new()));
+    let queue_network = queue.clone();
+    thread::spawn(move || {
+        start_recv_file_server(queue_network);
+    });
+
+    //Check arguments and start with right renderer
     match &args.renderer {
         RendererType::Console {
             clear
@@ -70,7 +83,7 @@ fn main() {
                 clear_console: clear.clone(),
             };
 
-            run_eyes(cli, running);
+            run_eyes(cli, queue.clone(), running);
         }
 
         RendererType::Matrix {
@@ -163,7 +176,7 @@ fn main() {
                                 controller,
                             };
 
-                            run_eyes(matrix, running);
+                            run_eyes(matrix, queue.clone(),running);
                         }
                         Err(e) => {
                             error!("Can't build hardware controller: {}", e.to_string());
@@ -212,7 +225,7 @@ fn main() {
                         controller,
                     };
 
-                    run_eyes(tasbot_eyes, running);
+                    run_eyes(tasbot_eyes,queue.clone(), running);
                 }
                 Err(e) => {
                     error!("Can't build hardware controller: {}", e.to_string());
@@ -223,7 +236,7 @@ fn main() {
 
         RendererType::Silent => {
             let silent = SilentRendererSettings{};
-            run_eyes(silent, running);
+            run_eyes(silent, queue.clone(),running);
         }
     }
 }
@@ -235,13 +248,18 @@ fn setup_logger(level: String) {
         Ok(val) => { val }
         Err(_) => {
             println!("[EXCEPT] Unrecognized log level ({}), reverting to {}. Consider updating the environmental variable \"{}\" to a valid value",
-                     level.to_uppercase(), LevelFilter::Warn, ENV_LOG_LEVEL);
+                     level.to_uppercase(), LOG_LEVEL_FALLBACK.to_uppercase(), ENV_LOG_LEVEL);
             LevelFilter::Warn
         }
     };
 
     log::set_max_level(log_level);
     info!("Set log level to {}", log_level.to_string());
+}
+
+fn get_fallback_log_level() -> String{
+    println!("{}", "Using the fallback log level!".red());
+    LOG_LEVEL_FALLBACK.to_string()
 }
 
 //todo: this works badly
