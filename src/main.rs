@@ -172,11 +172,11 @@ fn main() {
                 Ok(config) => {
                     match build_controller(config) {
                         Ok(controller) => {
-                            let matrix = LEDMatrixRenderer{
+                            let matrix = LEDMatrixRenderer {
                                 controller,
                             };
 
-                            run_eyes(matrix, queue.clone(),running);
+                            run_eyes(matrix, queue.clone(), running);
                         }
                         Err(e) => {
                             error!("Can't build hardware controller: {}", e.to_string());
@@ -225,18 +225,17 @@ fn main() {
                         controller,
                     };
 
-                    run_eyes(tasbot_eyes,queue.clone(), running);
+                    run_eyes(tasbot_eyes, queue.clone(), running);
                 }
                 Err(e) => {
                     error!("Can't build hardware controller: {}", e.to_string());
                 }
             }
-
         }
 
         RendererType::Silent => {
-            let silent = SilentRendererSettings{};
-            run_eyes(silent, queue.clone(),running);
+            let silent = SilentRendererSettings {};
+            run_eyes(silent, queue.clone(), running);
         }
     }
 }
@@ -257,8 +256,8 @@ fn setup_logger(level: String) {
     info!("Set log level to {}", log_level.to_string());
 }
 
-fn get_fallback_log_level() -> String{
-    println!("{}", "Using the fallback log level!".red());
+fn get_fallback_log_level() -> String {
+    println!("{}", "Using the fallback log level! Set the \"TASBOT_EYES_LOG_LEVEL\" environment variable to a valid (rust) log level!".red());
     LOG_LEVEL_FALLBACK.to_string()
 }
 

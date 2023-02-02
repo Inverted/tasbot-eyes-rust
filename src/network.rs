@@ -47,7 +47,7 @@ fn receive_file(stream: &mut TcpStream, prev_recv_count: u8) -> Result<PathBuf, 
 
 pub fn start_recv_file_server(queue: Arc<Mutex<Vec<PathBuf>>>) {
     let mut prev_recv_count: u8 = 0;
-    let ip = SocketAddr::from(([127, 0, 0, 1], TRANSFER_PORT));
+    let ip = SocketAddr::from(([0, 0, 0, 0], TRANSFER_PORT));
 
     let listener = match TcpListener::bind(ip) {
         Ok(listener) => {
