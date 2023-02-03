@@ -58,18 +58,19 @@ fn main() {
     let log_level = env::var(ENV_LOG_LEVEL).unwrap_or(get_fallback_log_level());
     setup_logger(log_level);
 
+    //Process arguments
+    init_arguments();
+    let running = Arc::new(AtomicBool::new(true));
+    let fallback_args = fallback_arguments();
+    let args = ARGUMENTS.get().unwrap_or(&fallback_args);
+
+    //Read color palette
     match read_color_palette(PathBuf::from("test_palette.txt")) {
         Ok(_) => {
             //todo: do something with it!
         }
         Err(e) => {warn!("{}", e.to_string())}
     };
-
-    //Process arguments
-    init_arguments();
-    let running = Arc::new(AtomicBool::new(true));
-    let fallback_args = fallback_arguments();
-    let args = ARGUMENTS.get().unwrap_or(&fallback_args);
 
     //Setup things
     //setup_ctrlc(running.clone());

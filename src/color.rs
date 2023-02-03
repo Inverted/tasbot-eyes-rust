@@ -89,13 +89,15 @@ pub fn read_color_palette(path: PathBuf) -> Result<Vec<Color>, ColorError> {
     for line in reader.lines() {
         match line {
             Ok(l) => {
-                match Color::from_hex_string(l.as_str()) {
-                    Ok(c) => {
-                        info!("Added {} to color palette", c);
-                        pal.push(c);
-                    },
-                    Err(e) => warn!("Problem with reading color: {}", e.to_string())
-                };
+                if &l[0..1] != ";" { //support for comments
+                    match Color::from_hex_string(l.as_str()) {
+                        Ok(c) => {
+                            info!("Added {} to color palette", c);
+                            pal.push(c);
+                        },
+                        Err(e) => warn!("Problem with reading color: {}", e.to_string())
+                    };
+                }
             }
             Err(e) => warn!("Problem with reading line: {}", e.to_string())
         }
