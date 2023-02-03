@@ -133,12 +133,6 @@ fn main() {
             let mut bright: Option<u8> = None;
             if brightness.is_some() {
                 let mut b = brightness.unwrap();
-
-                if b > 255 {
-                    warn!("Brightness given ({}) higher than 255. Gonna use 255", b);
-                    b = 255;
-                }
-
                 bright = Some(b);
             }
 
@@ -191,12 +185,6 @@ fn main() {
             let mut bright: Option<u8> = None;
             if brightness.is_some() {
                 let mut b = brightness.unwrap();
-
-                if b > 255 {
-                    warn!("Brightness given ({}) higher than 255. Gonna use 255", b);
-                    b = 255;
-                }
-
                 bright = Some(b);
             }
 

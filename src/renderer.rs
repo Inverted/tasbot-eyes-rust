@@ -29,7 +29,7 @@ pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, co
                     renderer.play(&anim);
                 }
                 Some(color) => {
-                    info!("Attempt to play ({}) with ({}) as color overwrite", path.to_str().unwrap_or("Invalid path"), color);
+                    info!("Attempt to play ({}) with (#{}) as color overwrite", path.to_str().unwrap_or("Invalid path"), color);
                     renderer.play_colored(&anim, &color);
                 }
             }

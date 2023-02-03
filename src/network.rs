@@ -9,6 +9,12 @@ use std::env::temp_dir;
 //todo: pub const QUEUE_PORT: u16 = 8080; //legacy support
 pub const TRANSFER_PORT: u16 = 8082; //todo: argument
 
+/* todo: actually wrap the data in a json object, adding two fields:
+         - hashcode to ensure data was not corrupted (but not necessarily as we use tcp now)
+         - kind of execution (now or queued), which needs further improvements for the renderer
+ */
+
+
 fn receive_file(stream: &mut TcpStream, prev_recv_count: u8) -> Result<PathBuf, Error> {
     let mut buffer: [u8; 4096] = [0; 4096];
     let mut file: Vec<u8> = Vec::new(); //u8 as in byte

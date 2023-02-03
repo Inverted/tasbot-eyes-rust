@@ -8,16 +8,16 @@ use once_cell::sync::OnceCell;
 use rs_ws281x::StripType;
 use thiserror::Error;
 
-use crate::color::Color;
+use crate::color::{Color, DEFAULT_COLOR, WHITE};
 
 pub static ARGUMENTS: OnceCell<Arguments> = OnceCell::new();
 
 #[derive(Parser, Debug)]
 #[clap(author = "R3tr0BoiDX aka Mirco Janisch", about = "Software, to control new TASBot's eyes")]
 pub struct Arguments {
-    //#[clap(short='l', long, required=false, possible_values=&log::LevelFilter::variants())] //todo: aint working
-    //#[clap(short='l', long, required=false, possible_values=&["error", "warn", "info", "debug"])] //todo: neither
-    //#[clap(short = 'l', long, required = false, default_value = "Warn")]
+    //todo: besides not needing it any more, how could I do something like this? both arent working
+    //#[clap(short='l', long, required=false, possible_values=&log::LevelFilter::variants())] //aint working
+    //#[clap(short='l', long, required=false, possible_values=&["error", "warn", "info", "debug"])] //neither
     //Set the log level
     //pub log_level: String,
 
@@ -49,11 +49,16 @@ pub struct Arguments {
     ///Use random color from palette for grayscale animations as well as the blinks and base
     pub color_overwrite_all: bool,
 
-    //#[clap(short='o', long, required=false, long_example="FF0080")] //todo: pain
+    //todo: how can I provide an example? both are not working
+    //#[clap(short='o', long, required=false, long_example="FF0080")]
     //#[clap(short='o', long, required=false, example="FF0080")]
     #[clap(short = 'o', long, required = false, default_value = "FFFFFF", hide_default_value = true)]
     ///Color in hex format that should be used for not colored animations, e.g. -o FF0080 for magenta
-    pub default_color: String,
+    pub default_color: Option<String>,
+
+    #[clap(short = 'P', long, required = false, default_value= "None", hide_default_value = true)]
+    ///The path to a color palette
+    pub palette: Option<String>,
 
     #[command(subcommand)]
     ///Which renderer to use
@@ -71,7 +76,7 @@ pub enum RendererType {
 
     ///Render animations using an LED matrix
     Matrix{
-        //strip_type: String, //todo: also provide list
+        //strip_type: String, //todo: also provide a list
 
         ///Change GPIO data pin. Possible values are between 2 to 27
         pin: u8,
@@ -125,7 +130,8 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Maximum delay between blinks: {} ms\n", self.max_delay));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
-        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: {}", self.default_color));
+        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
+        //result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette));
 
         write!(f, "{}", result)
     }
@@ -138,25 +144,12 @@ pub fn init_arguments() {
     ARGUMENTS.get_or_init(|| args);
 }
 
+//todo: move check of other arguments here as well
+
 fn check_arguments(mut raw_args: Arguments) -> Arguments {
     if raw_args.playback_speed <= 0.0 {
         warn!("Playback speed can't be smaller then 0! Using 1.0");
         raw_args.playback_speed = 1.0;
-    }
-
-    if raw_args.max_blinks < 0 {
-        warn!("Maximum count of blinks can't be smaller then 0. Using 0");
-        raw_args.max_blinks = 0;
-    }
-
-    if raw_args.max_delay < 0 {
-        warn!("Maximum delay between blinks can't be smaller then 0. Using 0");
-        raw_args.max_delay = 0;
-    }
-
-    if raw_args.min_delay < 0 {
-        warn!("Maximum delay between blinks can't be smaller then 0. Using 0");
-        raw_args.min_delay = 0;
     }
 
     if raw_args.max_delay < raw_args.min_delay {
@@ -166,11 +159,11 @@ fn check_arguments(mut raw_args: Arguments) -> Arguments {
         raw_args.max_delay = temp;
     }
 
-    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color, 16){
+    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string()), 16){
         Ok(_) => {raw_args.default_color } //nothing changes
         Err(e) => {
             warn!("Given color is not in a valid format. Using default color");
-            "FFFFFF".to_string()
+            None
         }
     };
 
@@ -188,7 +181,8 @@ pub fn fallback_arguments() -> Arguments {
 
         color_overwrite: false,
         color_overwrite_all: false,
-        default_color: "FFFFFF".to_string(),
+        default_color: None,
+        palette: None,
         renderer: RendererType::Silent,
     }
 }
