@@ -73,7 +73,7 @@ fn main() {
     });
 
     //Setup other stuff
-    setup_sigint_handler(&running.clone());
+    setup_sigint_handler(&running);
     init_color_palette(args.palette.clone());
 
     //Check arguments and start with right renderer
@@ -213,14 +213,16 @@ fn main() {
 }
 
 fn setup_sigint_handler(running: &Arc<AtomicBool>) {
+    let r = running.clone();
     match ctrlc::set_handler(move || {
+        info!("Exit program after this loop");
         r.store(false, Ordering::SeqCst);
     }) {
         Ok(_) => {}
         Err(e) => {
             let message = format!("Failed to set the SIGINT handler!");
-            error!(message);
-            panic!(message);
+            error!("{}", message);
+            panic!("{}", message);
         }
     };
 }
@@ -242,6 +244,6 @@ fn setup_logger(level: String) {
 }
 
 fn get_fallback_log_level() -> String {
-    println!("{}", "Using the fallback log level! Set the \"TASBOT_EYES_LOG_LEVEL\" environment variable to a valid (rust) log level!".red());
+    println!("{}", format!("Using the fallback log level! Set the \"{}\" environment variable to a valid (rust) log level!", ENV_LOG_LEVEL).red());
     LOG_LEVEL_FALLBACK.to_string()
 }

@@ -27,7 +27,7 @@ pub fn run_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, r
     }
 
     //Normal flow
-    while running.load(Ordering::SeqCst) {
+    while running.load(Ordering::SeqCst) { //todo: somehow interrupt this, to exit faster
         show_base(&mut renderer, args.color_overwrite && args.color_overwrite_all);
         do_blink_cycle(&mut renderer, args.color_overwrite && args.color_overwrite_all);
 
@@ -40,7 +40,9 @@ pub fn run_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, r
         }
     }
 
+    //Exit program
     renderer.clear();
+    std::process::exit(0);
 }
 
 fn startup<T: Renderer>(renderer: &mut T) {
