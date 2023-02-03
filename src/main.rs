@@ -137,28 +137,13 @@ fn main() {
                 if b > 255 {
                     warn!("Brightness given ({}) higher than 255. Gonna use 255", b);
                     b = 255;
-                } else if b < 0 {
-                    warn!("Brightness given ({}) smaller than 0. Gonna use 0", b);
-                    b = 0;
                 }
 
                 bright = Some(b);
             }
 
-            if target_freq.is_some() {
-                if target_freq.unwrap() < 0 {
-                    error!("Frequenz given ({}) can't be smaller then 0", target_freq.unwrap());
-                    panic!()
-                }
-            }
-
             if dma.is_some() {
                 let mut dma_channel = dma.unwrap();
-                if dma_channel < 0 {
-                    error!("DMA channel given ({}) smaller than 0", dma_channel);
-                    panic!()
-                }
-
                 if dma_channel > 13 {
                     error!("DMA channel given ({}) bigger than 13", dma_channel);
                     panic!()
@@ -210,9 +195,6 @@ fn main() {
                 if b > 255 {
                     warn!("Brightness given ({}) higher than 255. Gonna use 255", b);
                     b = 255;
-                } else if b < 0 {
-                    warn!("Brightness given ({}) smaller than 0. Gonna use 0", b);
-                    b = 0;
                 }
 
                 bright = Some(b);
