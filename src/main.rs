@@ -16,7 +16,7 @@ use rs_ws281x::{Controller, StripType, WS2811Error};
 use rs_ws281x::StripType::Ws2812;
 
 use crate::arguments::{ARGUMENTS, fallback_arguments, init_arguments, RendererType};
-use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN};
+use crate::color::{Color, ColorError, DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN, read_color_palette};
 use crate::file_operations::files_in_directory;
 use crate::led::{build_controller, LEDHardwareConfig};
 use crate::logging::CONSOLE_LOGGER;
@@ -57,6 +57,13 @@ fn main() {
     //Setup logger
     let log_level = env::var(ENV_LOG_LEVEL).unwrap_or(get_fallback_log_level());
     setup_logger(log_level);
+
+    match read_color_palette(PathBuf::from("test_palette.txt")) {
+        Ok(_) => {
+            //todo: do something with it!
+        }
+        Err(e) => {warn!("{}", e.to_string())}
+    };
 
     //Process arguments
     init_arguments();

@@ -1,9 +1,13 @@
 use std::fmt::{Display, Formatter};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::num::ParseIntError;
+use std::path::PathBuf;
 
-use log::warn;
+use log::{info, warn};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use thiserror::Error;
 
 use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
@@ -18,6 +22,16 @@ pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
 pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
 
 pub const DEFAULT_PALETTE: [Color; 6] = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
+
+#[derive(Error, Debug)]
+pub enum ColorError {
+    #[error("An IO error occurred: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("An error occurred: {0}")]
+    Other(String),
+}
+
 
 #[derive(Clone, Copy, Debug)]
 pub struct Color {
@@ -51,10 +65,11 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
-    let def_color = match u32::from_str_radix(&args.default_color, 16){
-        Ok(col) => {col}
-        Err(e) => {
-            warn!("Given color is not in a valid format. Using default color: {}", e.to_string());
+    //Convert given color
+    let def_color = match string_to_int(&args.default_color) {
+        Ok(c) => {c}
+        Err(_) => {
+            warn!("Can't parse given color. Using default color");
             0xFFFFFF
         }
     };
@@ -66,10 +81,54 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     if use_ran_color { Some(get_random_color(&DEFAULT_PALETTE)) } else { color }
 }
 
+pub fn read_color_palette(path: PathBuf) -> Result<Vec<Color>, ColorError> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let mut pal: Vec<Color> = Vec::new();
+    for line in reader.lines() {
+        match line {
+            Ok(l) => {
+                match Color::from_hex_string(l.as_str()) {
+                    Ok(c) => {
+                        info!("Added {} to color palette", c);
+                        pal.push(c);
+                    },
+                    Err(e) => warn!("Problem with reading color: {}", e.to_string())
+                };
+            }
+            Err(e) => warn!("Problem with reading line: {}", e.to_string())
+        }
+    }
+    Ok(pal)
+}
+
+fn string_to_int(hex_string: &str) -> Result<u32, ParseIntError> {
+    u32::from_str_radix(hex_string, 16)
+}
+
 fn hex_to_rgb(hex: u32) -> Color {
     Color {
         r: (hex >> 16) as u8,
         g: (hex >> 8) as u8,
         b: hex as u8,
+    }
+}
+
+impl Color {
+    pub fn from_hex_string(hex_string: &str) -> Result<Color, String> {
+        if hex_string.len() != 6 {
+            return Err(format!("Hex string is to short! Must be 6 but is {}", hex_string.len()));
+        }
+
+        match string_to_int(hex_string) {
+            Ok(c) => {
+                Ok(hex_to_rgb(c))
+            }
+            Err(e) => {
+                warn!("Can't parse given color: {}", e.to_string());
+                return Err("Invalid hex string format".to_owned());
+            }
+        }
     }
 }
