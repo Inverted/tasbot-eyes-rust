@@ -914,6 +914,8 @@ dependencies = [
  "once_cell",
  "rand 0.8.5",
  "rs_ws281x",
+ "serde",
+ "serde_json",
  "tempdir",
  "thiserror",
 ]

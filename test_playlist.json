@@ -1,5 +1,6 @@
 {
-  "playlist":[
+  "file_type": "playlist",
+  "entries":[
     "./gifs/others/asteroids.gif",
     "./gifs/others/coin eyes.gif",
     "./gifs/others/colorful.gif",

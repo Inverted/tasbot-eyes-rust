@@ -28,7 +28,7 @@ const DEFAULT_PALETTE: [Color; 6] = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
 
 pub static COLOR_PALETTE: OnceCell<Vec<Color>> = OnceCell::new();
 
-pub fn init_color_palette(path: Option<PathBuf>) {
+pub fn init_color_palette(path: &Option<PathBuf>) {
     let mut pal: Vec<Color> = Vec::new();
 
     match path {
@@ -38,7 +38,7 @@ pub fn init_color_palette(path: Option<PathBuf>) {
         }
         Some(pal_path) => {
             //Read color palette
-            match read_color_palette(PathBuf::from(pal_path)) {
+            match read_color_palette(&PathBuf::from(pal_path)) {
                 Ok(p) => {
                     pal = p;
                 }
@@ -143,7 +143,7 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     if use_ran_color { Some(get_random_color_from_palette()) } else { color }
 }
 
-pub fn read_color_palette(path: PathBuf) -> Result<Vec<Color>, ColorError> {
+pub fn read_color_palette(path: &PathBuf) -> Result<Vec<Color>, ColorError> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 

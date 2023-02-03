@@ -10,34 +10,44 @@ use log::{error, info, warn};
 use once_cell::sync::Lazy;
 use rand::{Rng, thread_rng};
 use rand::seq::SliceRandom;
+use serde_json::Error;
 
-use crate::{arguments};
+use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
 use crate::color::{get_base_or_blink_color, get_random_color_from_palette, GREEN};
-use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
+use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, Playlist, read_playlist, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
-pub fn run_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
-    let default_args = fallback_arguments();
-    let args = ARGUMENTS.get().unwrap_or(&default_args);
+pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
+    let binding = fallback_arguments();
+    let args = ARGUMENTS.get().unwrap_or(&binding);
 
-    //Startup sequence
-    if !args.skip_startup_animation {
-        startup(&mut renderer);
-    }
+    //Handle playlist
+    match args.playlist.clone() {
+        None => run_eyes(&mut renderer, queue, running),
+        Some(path) => {
+            match read_playlist(&path) {
+                Ok(playlist) => {
+                    play_playlist(&mut renderer, playlist);
 
-    //Normal flow
-    while running.load(Ordering::SeqCst) { //todo: somehow interrupt this, to exit faster
-        show_base(&mut renderer, args.color_overwrite && args.color_overwrite_all);
-        do_blink_cycle(&mut renderer, args.color_overwrite && args.color_overwrite_all);
-
-        let que = queue.lock();
-        match que {
-            Ok(q) => {
-                show_next_animation(&mut renderer, q, args.color_overwrite);
-            }
-            Err(e) => error!("Can't lock queue: {}", e.to_string())
+                    if args.continue_after_playlist {
+                        run_eyes(&mut renderer, queue, running);
+                    }
+                }
+                Err(e) => {
+                    let message = format!("Can't read JSON in playlist: {}", e.to_string());
+                    error!("{}", message);
+                    panic!("{}", message);
+                }
+            };
         }
+    }
+}
+
+fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist){
+    for entry in playlist.entries {
+        let path = PathBuf::from(entry);
+        play_animation_from_path(renderer, path, None); //todo: overwrite color
     }
 }
 
@@ -46,6 +56,30 @@ fn startup<T: Renderer>(renderer: &mut T) {
     let startup_anim_path = Path::new(STARTUP_PATH);
     play_animation_from_path(renderer, startup_anim_path.to_path_buf(), None);
     info!("Done playing startup animation");
+}
+
+fn run_eyes<T: Renderer>(renderer: &mut T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
+    let binding = fallback_arguments();
+    let args = ARGUMENTS.get().unwrap_or(&binding);
+
+    //Startup sequence
+    if !args.skip_startup_animation {
+        startup(renderer);
+    }
+
+    //Normal flow
+    while running.load(Ordering::SeqCst) { //todo: interrupt this somehow, to exit faster
+        show_base(renderer, args.color_overwrite && args.color_overwrite_all);
+        do_blink_cycle(renderer, args.color_overwrite && args.color_overwrite_all);
+
+        let que = queue.lock();
+        match que {
+            Ok(q) => {
+                show_next_animation(renderer, q, args.color_overwrite);
+            }
+            Err(e) => error!("Can't lock queue: {}", e.to_string())
+        }
+    }
 }
 
 fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {

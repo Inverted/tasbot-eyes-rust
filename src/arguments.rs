@@ -61,6 +61,14 @@ pub struct Arguments {
     ///The path to a color palette
     pub palette: Option<PathBuf>,
 
+    #[clap(short = 'P', long, required = false)]
+    ///The path to a playlist
+    pub playlist: Option<PathBuf>,
+
+    #[clap(short = 'C', long)]
+    ///Continue with normal program flow after playlist
+    pub continue_after_playlist: bool,
+
     #[command(subcommand)]
     ///Which renderer to use
     pub renderer: RendererType,
@@ -116,7 +124,7 @@ pub enum RendererType {
         brightness: Option<u8>,
     },
 
-    ///Render animation at all (for debugging or testing)
+    ///Render no animation at all (for debugging or testing)
     Silent
 }
 
@@ -132,7 +140,9 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
         result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
-        result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette.clone().unwrap_or(PathBuf::from("None")).display()));
+        result.push_str(&*format!("\t-Color palette for random colors: {}\n", self.palette.clone().unwrap_or(PathBuf::from("None")).display()));
+        result.push_str(&*format!("\t-Playlist to play: {}\n", self.playlist.clone().unwrap_or(PathBuf::from("None")).display()));
+        result.push_str(&*format!("\t-Continue with normal flow after playlist: {}", self.continue_after_playlist.to_string()));
 
         write!(f, "{}", result)
     }
@@ -160,6 +170,7 @@ fn check_arguments(mut raw_args: Arguments) -> Arguments {
         raw_args.max_delay = temp;
     }
 
+    //Attempt to convert it. If possible, everything is good
     raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string()), 16){
         Ok(_) => {raw_args.default_color } //nothing changes
         Err(e) => {
@@ -184,6 +195,8 @@ pub fn fallback_arguments() -> Arguments {
         color_overwrite_all: false,
         default_color: None,
         palette: None,
+        playlist: None,
+        continue_after_playlist: false,
         renderer: RendererType::Silent,
     }
 }

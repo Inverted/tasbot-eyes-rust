@@ -1,8 +1,11 @@
 use std::{fs, io};
 use std::path::{Path, PathBuf};
 
+use log::error;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use serde::{Deserialize, Serialize};
+use serde_json::error::Error;
 use thiserror::Error;
 
 pub const BASE_PATH: &str = "./gifs/base.gif";
@@ -16,6 +19,26 @@ pub enum FileOperationsError {
     Io(#[from] io::Error),
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Playlist {
+    file_type: String,
+    pub entries: Vec<String>,
+}
+
+pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Error>{
+    match fs::read_to_string(path) {
+        Ok(data) => {
+            let playlist: Playlist = serde_json::from_str(&data)?;
+            Ok(playlist)
+        }
+        Err(e) => {
+            let message = format!("Can't read playlist: {}", e.to_string());
+            error!("{}", message);
+            panic!("{}", message);
+            //Error::new(serde_json::error::Category::Data, "Can't read playlist")
+        }
+    }
+}
 
 pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
     //Modified https://doc.rust-lang.org/std/fs/fn.read_dir.html

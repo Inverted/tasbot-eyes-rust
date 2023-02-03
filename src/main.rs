@@ -26,7 +26,7 @@ use crate::renderer::console::ConsoleRendererSettings;
 use crate::renderer::led_matrix::{get_led_matrix_config, LEDMatrixError, LEDMatrixRenderer};
 use crate::renderer::silent::SilentRendererSettings;
 use crate::renderer::tasbot_eyes::{get_tasbot_eye_config, SCREEN_HEIGHT, SCREEN_WIDTH, TASBotRendererSettings};
-use crate::tasbot::run_eyes;
+use crate::tasbot::start_eyes;
 
 mod file_operations;
 mod gif;
@@ -73,7 +73,7 @@ fn main() {
 
     //Setup other stuff
     setup_sigint_handler(&running);
-    init_color_palette(args.palette.clone());
+    init_color_palette(&args.palette);
 
     //Check arguments and start with right renderer
     match &args.renderer {
@@ -84,7 +84,7 @@ fn main() {
                 clear_console: clear.clone(),
             };
 
-            run_eyes(cli, queue.clone(), running);
+            start_eyes(cli, queue.clone(), running);
         }
 
         RendererType::Matrix {
@@ -156,7 +156,7 @@ fn main() {
                                 controller,
                             };
 
-                            run_eyes(matrix, queue.clone(), running);
+                            start_eyes(matrix, queue.clone(), running);
                         }
                         Err(e) => {
                             error!("Can't build hardware controller: {}", e.to_string());
@@ -196,7 +196,7 @@ fn main() {
                         controller,
                     };
 
-                    run_eyes(tasbot_eyes, queue.clone(), running);
+                    start_eyes(tasbot_eyes, queue.clone(), running);
                 }
                 Err(e) => {
                     error!("Can't build hardware controller: {}", e.to_string());
@@ -206,7 +206,7 @@ fn main() {
 
         RendererType::Silent => {
             let silent = SilentRendererSettings {};
-            run_eyes(silent, queue.clone(), running);
+            start_eyes(silent, queue.clone(), running);
         }
     }
 }
