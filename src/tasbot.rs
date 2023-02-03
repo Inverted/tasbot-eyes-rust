@@ -39,10 +39,6 @@ pub fn run_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, r
             Err(e) => error!("Can't lock queue: {}", e.to_string())
         }
     }
-
-    //Exit program
-    renderer.clear();
-    std::process::exit(0);
 }
 
 fn startup<T: Renderer>(renderer: &mut T) {

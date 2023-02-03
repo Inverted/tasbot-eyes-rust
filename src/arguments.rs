@@ -53,11 +53,11 @@ pub struct Arguments {
     //todo: how can I provide an example? both are not working
     //#[clap(short='o', long, required=false, long_example="FF0080")]
     //#[clap(short='o', long, required=false, example="FF0080")]
-    #[clap(short = 'o', long, required = false, default_value = "FFFFFF", hide_default_value = true)]
+    #[clap(short = 'o', long, required = false)]
     ///Color in hex format that should be used for not colored animations, e.g. -o FF0080 for magenta
     pub default_color: Option<String>,
 
-    #[clap(short = 'P', long, required = false, default_value= "None", hide_default_value = true)]
+    #[clap(short = 'p', long, required = false)]
     ///The path to a color palette
     pub palette: Option<PathBuf>,
 
@@ -132,7 +132,7 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
         result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
-        result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette.clone().unwrap_or(PathBuf::new()).display()));
+        result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette.clone().unwrap_or(PathBuf::from("None")).display()));
 
         write!(f, "{}", result)
     }

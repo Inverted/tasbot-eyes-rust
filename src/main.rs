@@ -1,15 +1,14 @@
 use std::{env, thread, time};
 use std::cell::{Cell, RefCell};
 use std::mem::transmute;
-use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+
 use colored::Colorize;
 use ctrlc::Error;
-
 use log::{error, info, LevelFilter, warn};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -17,7 +16,7 @@ use rs_ws281x::{Controller, StripType, WS2811Error};
 use rs_ws281x::StripType::Ws2812;
 
 use crate::arguments::{ARGUMENTS, fallback_arguments, init_arguments, RendererType};
-use crate::color::{Color, ColorError, get_base_or_blink_color, init_color_palette, read_color_palette};
+use crate::color::{Color, ColorError, get_base_or_blink_color, init_color_palette};
 use crate::file_operations::files_in_directory;
 use crate::led::{build_controller, LEDHardwareConfig};
 use crate::logging::CONSOLE_LOGGER;
@@ -42,7 +41,7 @@ mod network;
 //itertools
 //cargo docs
 //always auto derive debug, when implementing Display
-//todo: clear on exit
+//todo: clear on exit fast
 //cfg for arm not working
 
 /*
@@ -215,8 +214,10 @@ fn main() {
 fn setup_sigint_handler(running: &Arc<AtomicBool>) {
     let r = running.clone();
     match ctrlc::set_handler(move || {
-        info!("Exit program after this loop");
+        info!("Exit program");
         r.store(false, Ordering::SeqCst);
+        //todo: renderer.clear();
+        std::process::exit(0);
     }) {
         Ok(_) => {}
         Err(e) => {

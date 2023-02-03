@@ -4,6 +4,7 @@ use std::io::{BufRead, BufReader};
 use std::num::ParseIntError;
 use std::path::PathBuf;
 
+use colored::Colorize;
 use log::{info, warn};
 use once_cell::sync::OnceCell;
 use rand::seq::SliceRandom;
@@ -110,7 +111,7 @@ fn get_random_color(colors: &Vec<Color>) -> Color {
     }
 }
 
-pub fn get_random_color_from_palette() -> Color{
+pub fn get_random_color_from_palette() -> Color {
     match COLOR_PALETTE.get() {
         None => {
             warn!("Can't get color palette! Reverting back to default palette!");
@@ -153,7 +154,7 @@ pub fn read_color_palette(path: PathBuf) -> Result<Vec<Color>, ColorError> {
                 if &l[0..1] != ";" { //support for comments
                     match Color::from_hex_string(l.as_str()) {
                         Ok(c) => {
-                            info!("Added {} to color palette", c);
+                            info!("Added #{} to color palette", format!("{}", c).truecolor(c.r, c.g, c.b));
                             pal.push(c);
                         }
                         Err(e) => warn!("Problem with reading color: {}", e.to_string())
