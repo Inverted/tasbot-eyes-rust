@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
 
 use clap::{Arg, Parser};
 use clap::builder::Str;
@@ -58,7 +59,7 @@ pub struct Arguments {
 
     #[clap(short = 'P', long, required = false, default_value= "None", hide_default_value = true)]
     ///The path to a color palette
-    pub palette: Option<String>,
+    pub palette: Option<PathBuf>,
 
     #[command(subcommand)]
     ///Which renderer to use
@@ -130,8 +131,8 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Maximum delay between blinks: {} ms\n", self.max_delay));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
-        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
-        //result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette));
+        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
+        result.push_str(&*format!("\t-Color palette for random colors: {}", self.palette.clone().unwrap_or(PathBuf::new()).display()));
 
         write!(f, "{}", result)
     }

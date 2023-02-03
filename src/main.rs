@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use colored::Colorize;
+use ctrlc::Error;
 
 use log::{error, info, LevelFilter, warn};
 use rand::seq::SliceRandom;
@@ -16,7 +17,7 @@ use rs_ws281x::{Controller, StripType, WS2811Error};
 use rs_ws281x::StripType::Ws2812;
 
 use crate::arguments::{ARGUMENTS, fallback_arguments, init_arguments, RendererType};
-use crate::color::{Color, ColorError, DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN, read_color_palette};
+use crate::color::{Color, ColorError, get_base_or_blink_color, init_color_palette, read_color_palette};
 use crate::file_operations::files_in_directory;
 use crate::led::{build_controller, LEDHardwareConfig};
 use crate::logging::CONSOLE_LOGGER;
@@ -41,8 +42,7 @@ mod network;
 //itertools
 //cargo docs
 //always auto derive debug, when implementing Display
-//todo: subcommands with clap
-//clear on exit
+//todo: clear on exit
 //cfg for arm not working
 
 /*
@@ -54,26 +54,16 @@ pub const ENV_LOG_LEVEL: &str = "TASBOT_EYES_LOG_LEVEL";
 pub const LOG_LEVEL_FALLBACK: &str = "trace";
 
 fn main() {
+    let running = Arc::new(AtomicBool::new(true));
+
     //Setup logger
     let log_level = env::var(ENV_LOG_LEVEL).unwrap_or(get_fallback_log_level());
     setup_logger(log_level);
 
     //Process arguments
     init_arguments();
-    let running = Arc::new(AtomicBool::new(true));
     let fallback_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&fallback_args);
-
-    //Read color palette
-    match read_color_palette(PathBuf::from("test_palette.txt")) {
-        Ok(_) => {
-            //todo: do something with it!
-        }
-        Err(e) => {warn!("{}", e.to_string())}
-    };
-
-    //Setup things
-    //setup_ctrlc(running.clone());
 
     //Setup queue and network thread
     let queue: Arc<Mutex<Vec<PathBuf>>> = Arc::new(Mutex::new(Vec::new()));
@@ -81,6 +71,10 @@ fn main() {
     thread::spawn(move || {
         start_recv_file_server(queue_network);
     });
+
+    //Setup other stuff
+    setup_sigint_handler(&running.clone());
+    init_color_palette(args.palette.clone());
 
     //Check arguments and start with right renderer
     match &args.renderer {
@@ -218,6 +212,19 @@ fn main() {
     }
 }
 
+fn setup_sigint_handler(running: &Arc<AtomicBool>) {
+    match ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    }) {
+        Ok(_) => {}
+        Err(e) => {
+            let message = format!("Failed to set the SIGINT handler!");
+            error!(message);
+            panic!(message);
+        }
+    };
+}
+
 fn setup_logger(level: String) {
     log::set_logger(&CONSOLE_LOGGER).expect("[EXCEPT] Can't set logger");
 
@@ -237,11 +244,4 @@ fn setup_logger(level: String) {
 fn get_fallback_log_level() -> String {
     println!("{}", "Using the fallback log level! Set the \"TASBOT_EYES_LOG_LEVEL\" environment variable to a valid (rust) log level!".red());
     LOG_LEVEL_FALLBACK.to_string()
-}
-
-//todo: this works badly
-fn setup_ctrlc(running: Arc<AtomicBool>) {
-    ctrlc::set_handler(move || {
-        running.store(false, Ordering::SeqCst);
-    }).expect("[EXCEPT] Error setting Ctrl-C handler");
 }

@@ -13,7 +13,7 @@ use rand::seq::SliceRandom;
 
 use crate::{arguments};
 use crate::arguments::{ARGUMENTS, fallback_arguments};
-use crate::color::{DEFAULT_PALETTE, get_base_or_blink_color, get_random_color, GREEN};
+use crate::color::{get_base_or_blink_color, get_random_color_from_palette, GREEN};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
@@ -136,7 +136,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<
         }
         Some(path) => {
             //Queue is not empty, play animation
-            let color = if ran_color { Some(get_random_color(&DEFAULT_PALETTE)) } else { None };
+            let color = if ran_color { Some(get_random_color_from_palette()) } else { None };
             play_animation_from_path(renderer, path, color);
         }
     }
