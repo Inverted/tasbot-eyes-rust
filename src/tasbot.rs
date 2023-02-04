@@ -14,7 +14,7 @@ use serde_json::Error;
 
 use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
-use crate::color::{get_base_or_blink_color, get_random_color_from_palette, GREEN};
+use crate::color::{Color, DEFAULT_COLOR, get_base_or_blink_color, get_random_color_from_palette, GREEN};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, Playlist, read_playlist, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
@@ -31,7 +31,7 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
         Some(path) => {
             match read_playlist(&path) {
                 Ok(playlist) => {
-                    play_playlist(&mut renderer, playlist);
+                    play_playlist(&mut renderer, playlist, args.color_overwrite);
 
                     //Continue with normal program flow, if wanted
                     if args.continue_after_playlist {
@@ -48,10 +48,11 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
     }
 }
 
-fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist){
+fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist, use_rand_color: bool){
     for entry in playlist.entries {
         let path = PathBuf::from(entry);
-        play_animation_from_path(renderer, path, None); //todo: overwrite color
+
+        play_animation_from_path(renderer, path, get_base_or_blink_color(use_rand_color));
     }
 }
 
@@ -86,7 +87,7 @@ fn run_eyes<T: Renderer>(renderer: &mut T, queue: Arc<Mutex<Vec<PathBuf>>>, runn
     }
 }
 
-fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {
+fn show_base<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Play base animation");
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
@@ -96,12 +97,12 @@ fn show_base<T: Renderer>(renderer: &mut T, ran_color: bool) {
         let base_path = Path::new(BASE_PATH);
 
         //Render with that color, whatever it is now
-        play_animation_from_path(renderer, base_path.to_path_buf(), get_base_or_blink_color(ran_color));
+        play_animation_from_path(renderer, base_path.to_path_buf(), get_base_or_blink_color(use_rand_color));
     }
     info!("Done playing base animation");
 }
 
-fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
+fn do_blink_cycle<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Enter blink cycle");
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
@@ -121,7 +122,7 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
                 match random_blink {
                     None => { warn!("Can't choose a random animation"); }
                     Some(path) => {
-                        play_animation_from_path(renderer, path.to_path_buf(), get_base_or_blink_color(ran_color));
+                        play_animation_from_path(renderer, path.to_path_buf(), get_base_or_blink_color(use_rand_color));
                     }
                 }
             }
@@ -134,7 +135,7 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, ran_color: bool) {
     info!("Exit blink cycle");
 }
 
-fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<PathBuf>>, ran_color: bool) {
+fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<PathBuf>>, use_rand_color: bool) {
     info!("Play other animation");
 
     let path = queue.pop();
@@ -158,7 +159,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<
                         info!("Created new queue");
 
                         //Recursive call itself, to actually show a animation
-                        show_next_animation(renderer, queue, ran_color);
+                        show_next_animation(renderer, queue, use_rand_color);
                     } else {
                         let message = "Directory seems empty, please check!";
                         error!("{}", message);
@@ -172,7 +173,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<
         }
         Some(path) => {
             //Queue is not empty, play animation
-            let color = if ran_color { Some(get_random_color_from_palette()) } else { None };
+            let color = if use_rand_color { Some(get_random_color_from_palette()) } else { None };
             play_animation_from_path(renderer, path, color);
         }
     }

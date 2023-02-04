@@ -39,7 +39,6 @@ mod led;
 mod network;
 
 //todo: cargo docs
-//todo: also print out settings of renderer when starting
 //todo: clear on exit as argument or clear on exit fast
 //todo: cfg for arm not working
 //todo: reorder files, lol
