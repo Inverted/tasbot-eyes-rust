@@ -46,14 +46,14 @@ impl Display for LEDMatrixRenderer {
 }
 
 impl Renderer for LEDMatrixRenderer {
-    fn play(&mut self, anim: &Animation) {
+    fn play(&mut self, anim: Animation) {
         todo!();
         for frame in &anim.frames {
             show_frame(self, frame, None);
         }
     }
 
-    fn play_colored(&mut self, anim: &Animation, color: &Color) {
+    fn play_colored(&mut self, anim: Animation, color: &Color) {
         todo!();
         let color = if anim.grayscale { Some(color) } else { None };
 

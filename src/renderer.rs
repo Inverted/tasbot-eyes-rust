@@ -13,9 +13,9 @@ use crate::color::Color;
 use crate::gif::{Animation, Frame, GifError, read_animation};
 
 pub trait Renderer {
-    fn play(&mut self, anim: &Animation);
+    fn play(&mut self, anim: Animation);
     //todo: no ask: animation should be consumed, ig
-    fn play_colored(&mut self, anim: &Animation, color: &Color);
+    fn play_colored(&mut self, anim: Animation, color: &Color);
     fn clear(&mut self);
     fn print_config(&self);
 }
@@ -27,11 +27,11 @@ pub fn play_animation_from_path<T: Renderer>(renderer: &mut T, path: PathBuf, co
             match color {
                 None => {
                     info!("Attempt to play ({})", path.to_str().unwrap_or("Invalid path"));
-                    renderer.play(&anim);
+                    renderer.play(anim);
                 }
                 Some(color) => {
                     info!("Attempt to play ({}) with (#{}) as color overwrite", path.to_str().unwrap_or("Invalid path"), color);
-                    renderer.play_colored(&anim, &color);
+                    renderer.play_colored(anim, &color);
                 }
             }
         }

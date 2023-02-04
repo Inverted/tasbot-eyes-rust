@@ -27,13 +27,13 @@ impl Display for ConsoleRendererSettings {
 }
 
 impl Renderer for ConsoleRendererSettings {
-    fn play(&mut self, anim: &Animation) {
+    fn play(&mut self, anim: Animation) {
         for frame in &anim.frames {
             show_frame(self, frame, None);
         }
     }
 
-    fn play_colored(&mut self, anim: &Animation, color: &Color) {
+    fn play_colored(&mut self, anim: Animation, color: &Color) {
         let color = if anim.grayscale { Some(color) } else { None };
 
         for frame in &anim.frames {
