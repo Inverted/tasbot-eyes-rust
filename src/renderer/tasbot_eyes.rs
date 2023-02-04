@@ -1,8 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use log::{info, warn};
-use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, RawColor, StripType};
-use rs_ws281x::bindings::ws2811_set_custom_gamma_factor;
+use rs_ws281x::{Controller, RawColor, StripType};
 
 use crate::color::{Color, get_gamma_correction};
 use crate::gif::{Animation, Frame, pixel_is_black};

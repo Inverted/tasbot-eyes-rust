@@ -6,6 +6,7 @@
 
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
+
 use log::{info, warn};
 use rs_ws281x::{Controller, RawColor, StripType};
 use thiserror::Error;
@@ -80,8 +81,7 @@ fn show_frame(settings: &mut LEDMatrixRenderer, frame: &Frame, color: Option<&Co
     //todo: Indices might be horrible wrong
     for x in 0..frame.pixels.len() {
         for y in 0..frame.pixels[x].len() {
-
-            let mut rend_color: RawColor;
+            let rend_color: RawColor;
             match color {
                 //Use color of frame
                 None => {

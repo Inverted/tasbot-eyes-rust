@@ -1,6 +1,4 @@
 use std::fmt::{Display, Formatter};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::num::ParseIntError;
 use std::path::PathBuf;
 
@@ -9,12 +7,10 @@ use log::{info, warn};
 use once_cell::sync::OnceCell;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use serde_json::Error;
 use thiserror::Error;
 
-use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
-use crate::file_operations::{Palette, read_palette};
+use crate::file_operations::read_palette;
 
 pub const RED: Color = Color { r: 255, g: 0, b: 0 };
 pub const YELLOW: Color = Color { r: 255, g: 255, b: 0 };
@@ -22,7 +18,7 @@ pub const GREEN: Color = Color { r: 0, g: 255, b: 0 };
 pub const CYAN: Color = Color { r: 0, g: 255, b: 255 };
 pub const BLUE: Color = Color { r: 0, g: 0, b: 255 };
 pub const PURPLE: Color = Color { r: 255, g: 0, b: 255 };
-pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
+//todo: pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
 pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
 
 pub const DEFAULT_COLOR: Color = WHITE;
@@ -106,10 +102,8 @@ pub fn init_color_palette(path: &Option<PathBuf>) {
 }
 
 pub fn read_color_palette(path: &PathBuf) -> Result<Vec<Color>, ColorError> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
     let mut palette: Vec<Color> = Vec::new();
+
     let pal = read_palette(path)?;
     for hex_color in pal.colors {
         match Color::from_hex_string(hex_color.as_str()) {
@@ -167,7 +161,7 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     if use_ran_color { Some(get_random_color_from_palette()) } else { color }
 }
 
-pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8{
+pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8 {
     ((channel_value as f32 / u8::MAX as f32).powf(gamma) * u8::MAX as f32 + 0.5).round() as u8
 }
 

@@ -1,29 +1,19 @@
-use std::{env, thread, time};
-use std::cell::{Cell, RefCell};
-use std::mem::transmute;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::{env, thread};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
 
 use colored::Colorize;
-use ctrlc::Error;
 use log::{error, info, LevelFilter, warn};
-use rand::seq::SliceRandom;
-use rand::thread_rng;
-use rs_ws281x::{Controller, StripType, WS2811Error};
 use rs_ws281x::StripType::Ws2812;
 
 use crate::arguments::{ARGUMENTS, fallback_arguments, init_arguments, RendererType};
-use crate::color::{Color, ColorError, get_base_or_blink_color, init_color_palette};
-use crate::file_operations::files_in_directory;
-use crate::led::{build_controller, LEDHardwareConfig};
+use crate::color::init_color_palette;
+use crate::led::build_controller;
 use crate::logging::CONSOLE_LOGGER;
 use crate::network::start_recv_file_server;
-use crate::renderer::{play_animation_from_path, Renderer};
 use crate::renderer::console::ConsoleRendererSettings;
-use crate::renderer::led_matrix::{get_led_matrix_config, LEDMatrixError, LEDMatrixRenderer};
+use crate::renderer::led_matrix::{get_led_matrix_config, LEDMatrixRenderer};
 use crate::renderer::silent::SilentRendererSettings;
 use crate::renderer::tasbot_eyes::{get_tasbot_eye_config, SCREEN_HEIGHT, SCREEN_WIDTH, TASBotRendererSettings};
 use crate::tasbot::start_eyes;
@@ -128,12 +118,12 @@ fn main() {
 
             let mut bright: Option<u8> = None;
             if brightness.is_some() {
-                let mut b = brightness.unwrap();
+                let b = brightness.unwrap();
                 bright = Some(b);
             }
 
             if dma.is_some() {
-                let mut dma_channel = dma.unwrap();
+                let dma_channel = dma.unwrap();
                 if dma_channel > 13 {
                     error!("DMA channel given ({}) bigger than 13", dma_channel);
                     panic!()
@@ -190,7 +180,7 @@ fn main() {
         } => {
             let mut bright: Option<u8> = None;
             if brightness.is_some() {
-                let mut b = brightness.unwrap();
+                let b = brightness.unwrap();
                 bright = Some(b);
             }
 
@@ -241,7 +231,7 @@ fn setup_sigint_handler(running: &Arc<AtomicBool>) {
     }) {
         Ok(_) => {}
         Err(e) => {
-            let message = format!("Failed to set the SIGINT handler!");
+            let message = format!("Failed to set the SIGINT handler: {}", e.to_string());
             error!("{}", message);
             panic!("{}", message);
         }

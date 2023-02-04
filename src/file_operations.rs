@@ -2,10 +2,7 @@ use std::{fs, io};
 use std::path::{Path, PathBuf};
 
 use log::error;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
-use serde_json::error::Error;
 use thiserror::Error;
 
 pub const BASE_PATH: &str = "./gifs/base.gif";
@@ -31,7 +28,12 @@ pub struct Palette {
     pub colors: Vec<String>,
 }
 
-pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error>{
+/// Read the given palette at the given path into a Palette structure
+/// # Input
+/// * `path` - the path to the palette file
+/// # Output
+/// A Palette structure containing a vector of colors as strings
+pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error> {
     match fs::read_to_string(path) {
         Ok(data) => {
             let palette: Palette = serde_json::from_str(&data)?;
@@ -46,7 +48,7 @@ pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error>
     }
 }
 
-pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Error>{
+pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Error> {
     match fs::read_to_string(path) {
         Ok(data) => {
             let playlist: Playlist = serde_json::from_str(&data)?;
@@ -64,7 +66,7 @@ pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Erro
 pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
     //Modified https://doc.rust-lang.org/std/fs/fn.read_dir.html
 
-    let mut entries = fs::read_dir(dir)?
+    let entries = fs::read_dir(dir)?
         .filter_map(|res| {
             if let Ok(entry) = res {
                 if entry.metadata().map(|meta| meta.is_file()).unwrap_or(false) {

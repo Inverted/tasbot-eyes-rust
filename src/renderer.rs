@@ -1,16 +1,15 @@
+use std::path::PathBuf;
+use std::time;
+
+use log::{info, warn};
+
+use crate::color::Color;
+use crate::gif::{Animation, Frame, read_animation};
+
 pub mod silent;
 pub mod console;
 pub mod tasbot_eyes;
 pub mod led_matrix;
-
-use std::fmt::{Display, Formatter};
-use std::path::{Path, PathBuf};
-use std::time;
-
-use log::{info, warn};
-use crate::color::Color;
-
-use crate::gif::{Animation, Frame, GifError, read_animation};
 
 pub trait Renderer {
     fn play(&mut self, anim: Animation);

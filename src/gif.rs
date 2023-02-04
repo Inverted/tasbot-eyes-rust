@@ -15,9 +15,6 @@ pub enum GifError {
 
     #[error("A decoder error occurred: {0}")]
     Decode(#[from] gif::DecodingError),
-
-    #[error("An error occurred: {0}")]
-    Other(String),
 }
 
 pub struct Animation {

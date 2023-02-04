@@ -1,15 +1,11 @@
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 
-use clap::{Arg, Parser};
-use clap::builder::Str;
-use clap::ValueHint;
-use log::{info, LevelFilter, ParseLevelError, warn};
+use clap::Parser;
+use log::{info, warn};
 use once_cell::sync::OnceCell;
-use rs_ws281x::StripType;
-use thiserror::Error;
 
-use crate::color::{Color, DEFAULT_COLOR, WHITE};
+use crate::color::DEFAULT_COLOR;
 
 pub static ARGUMENTS: OnceCell<Arguments> = OnceCell::new();
 
@@ -69,7 +65,7 @@ pub struct Arguments {
     ///Continue with normal program flow after playlist
     pub continue_after_playlist: bool,
 
-    #[clap(short = 'i', long, required = false, default_value="8082")]
+    #[clap(short = 'i', long, required = false, default_value = "8082")]
     ///Set the TCP port that is to use for receiving animations
     pub inject_port: u16,
 
@@ -81,14 +77,14 @@ pub struct Arguments {
 #[derive(clap::Subcommand, Debug)]
 pub enum RendererType {
     ///Render animations in current console
-    Console{
+    Console {
         #[clap(short = 'c', long)]
         ///Clear the console after every frame
         clear: bool,
     },
 
     ///Render animations on an LED matrix
-    Matrix{
+    Matrix {
         //strip_type: String, //todo: also provide a list
 
         ///Change GPIO data pin. Possible values are between 2 to 27
@@ -127,7 +123,7 @@ pub enum RendererType {
     },
 
     ///Render animations on blastermak's LED matrix for TASBot
-    TASBot{
+    TASBot {
         #[clap(short = 'd', long, required = false)]
         ///Change GPIO data pin. Possible values are between 2 to 27. Default is 10
         pin: Option<u8>,
@@ -147,7 +143,7 @@ pub enum RendererType {
     },
 
     ///Render no animation at all (for debugging or testing)
-    Silent
+    Silent,
 }
 
 impl Display for Arguments {
@@ -194,10 +190,10 @@ fn check_arguments(mut raw_args: Arguments) -> Arguments {
     }
 
     //Attempt to convert it. If possible, everything is good
-    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string()), 16){
-        Ok(_) => {raw_args.default_color } //nothing changes
+    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string()), 16) {
+        Ok(_) => { raw_args.default_color } //nothing changes
         Err(e) => {
-            warn!("Given color is not in a valid format. Using default color");
+            warn!("Given color is not in a valid format. Using default color: {}", e.to_string());
             None
         }
     };

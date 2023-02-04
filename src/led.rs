@@ -14,7 +14,7 @@ pub struct LEDHardwareConfig {
     pub count: i32,
     pub strip_type: StripType,
     pub brightness: u8,
-    pub inverted: bool
+    pub inverted: bool,
 }
 
 pub fn build_controller(config: LEDHardwareConfig) -> Result<Controller, WS2811Error> {

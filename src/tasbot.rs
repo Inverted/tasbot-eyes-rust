@@ -1,20 +1,15 @@
-use std::cell::{Ref, RefCell};
-use std::fmt::Arguments;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, LockResult, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
 
 use log::{error, info, warn};
-use once_cell::sync::Lazy;
 use rand::{Rng, thread_rng};
 use rand::seq::SliceRandom;
-use serde_json::Error;
 
-use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
-use crate::color::{Color, DEFAULT_COLOR, get_base_or_blink_color, get_random_color_from_palette, GREEN};
+use crate::color::{get_base_or_blink_color, get_random_color_from_palette};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, Playlist, read_playlist, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
@@ -48,7 +43,7 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
     }
 }
 
-fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist, use_rand_color: bool){
+fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist, use_rand_color: bool) {
     for entry in playlist.entries {
         let path = PathBuf::from(entry);
 

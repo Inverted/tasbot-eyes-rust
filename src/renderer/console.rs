@@ -1,9 +1,8 @@
-use std::{io, time};
-use std::fmt::{Display, Formatter, write};
+use std::io;
+use std::fmt::{Display, Formatter};
 use std::io::Write;
-use std::os::unix::raw::time_t;
 
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 use log::info;
 
 use crate::gif::{Animation, Frame, pixel_is_black};

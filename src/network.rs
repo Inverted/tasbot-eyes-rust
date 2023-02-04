@@ -3,15 +3,14 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::sync::{Arc, LockResult, Mutex};
+use std::sync::{Arc, Mutex};
 
-use clap::builder::Str;
-use log::{error, info, warn};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::arguments::{ARGUMENTS, fallback_arguments};
-use crate::network::PlayMode::{now, queued};
+use crate::network::PlayMode::{Now, Queued};
 
 //todo: pub const QUEUE_PORT: u16 = 8080; //legacy support
 
@@ -39,8 +38,8 @@ pub struct ProcessedMessage {
 }
 
 enum PlayMode {
-    now,
-    queued,
+    Now,
+    Queued,
 }
 
 impl FromStr for PlayMode {
@@ -51,8 +50,8 @@ impl FromStr for PlayMode {
         let lower = binding.as_str();
 
         match lower {
-            "now" => Ok(now),
-            "queued" => Ok(queued),
+            "Now" => Ok(Now),
+            "Queued" => Ok(Queued),
             _ => Err(NetworkError::Conversion("Invalid")),
         }
     }
@@ -64,12 +63,12 @@ fn receive_file(stream: &mut TcpStream, prev_recv_count: u8) -> Result<Processed
 
     // Read all bytes until last byte is received
     loop {
-        let bytes_read = match stream.read(&mut buffer) {
-            Ok(bytes_read) => {
-                if bytes_read == 0 {
+        match stream.read(&mut buffer) {
+            Ok(bytes) => {
+                if bytes == 0 {
                     break;
                 }
-                data.extend_from_slice(&mut buffer[..bytes_read]);
+                data.extend_from_slice(&mut buffer[..bytes]);
             }
             Err(e) => {
                 error!("Can't read from stream: {}", e.to_string());
@@ -115,11 +114,10 @@ pub fn start_recv_file_server(queue: Arc<Mutex<Vec<PathBuf>>>) {
     let mut prev_recv_count: u8 = 0;
     let ip = SocketAddr::from(([0, 0, 0, 0], args.inject_port));
 
-    let listener = match TcpListener::bind(ip) {
+    //Am I sorry for this tree? - No. Well, maybe.
+    match TcpListener::bind(ip) {
         Ok(listener) => {
             info!("Open port {} for receiving animation over TCP", ip.port());
-
-            //Am I sorry for this tree? - No. Well, maybe.
             for connection in listener.incoming() {
                 let mut connection = connection.unwrap();
                 match receive_file(&mut connection, prev_recv_count) {
@@ -127,10 +125,10 @@ pub fn start_recv_file_server(queue: Arc<Mutex<Vec<PathBuf>>>) {
                         match queue.lock() {
                             Ok(mut vec) => {
                                 match p_message.play_mode {
-                                    now => {
+                                    Now => {
                                         todo!();
                                     }
-                                    queued => {
+                                    Queued => {
                                         let message = format!("Added ({}) to queue", p_message.path.display());
                                         info!("{}", message);
                                         match connection.write(message.as_ref()) {
