@@ -22,6 +22,9 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
     let binding = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&binding);
 
+    //Print out config
+    renderer.print_config();
+
     //Handle playlist
     match args.playlist.clone() {
         None => run_eyes(&mut renderer, queue, running),
@@ -30,6 +33,7 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
                 Ok(playlist) => {
                     play_playlist(&mut renderer, playlist);
 
+                    //Continue with normal program flow, if wanted
                     if args.continue_after_playlist {
                         run_eyes(&mut renderer, queue, running);
                     }

@@ -14,8 +14,6 @@ use thiserror::Error;
 use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
 
-const DEFAULT_GAMMA: f32 = 2.8;
-
 pub const RED: Color = Color { r: 255, g: 0, b: 0 };
 pub const YELLOW: Color = Color { r: 255, g: 255, b: 0 };
 pub const GREEN: Color = Color { r: 0, g: 255, b: 0 };
@@ -29,32 +27,6 @@ pub const DEFAULT_COLOR: Color = WHITE;
 const DEFAULT_PALETTE: [Color; 6] = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
 
 pub static COLOR_PALETTE: OnceCell<Vec<Color>> = OnceCell::new();
-
-pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8{
-    ((channel_value as f32 / u8::MAX as f32).powf(gamma) * u8::MAX as f32 + 0.5).round() as u8
-}
-
-pub fn init_color_palette(path: &Option<PathBuf>) {
-    let mut pal: Vec<Color> = Vec::new();
-
-    match path {
-        None => {
-            //Default palette
-            pal = DEFAULT_PALETTE.to_vec();
-        }
-        Some(pal_path) => {
-            //Read color palette
-            match read_color_palette(&PathBuf::from(pal_path)) {
-                Ok(p) => {
-                    pal = p;
-                }
-                Err(e) => { warn!("{}", e.to_string()) }
-            };
-        }
-    }
-
-    COLOR_PALETTE.get_or_init(|| pal);
-}
 
 #[derive(Error, Debug)]
 pub enum ColorError {
@@ -106,47 +78,26 @@ impl Display for Color {
     }
 }
 
-fn get_random_color(colors: &Vec<Color>) -> Color {
-    let mut rng = thread_rng();
-    match colors.choose(&mut rng) {
-        None => {
-            warn!("Using default color!");
-            DEFAULT_COLOR
-        }
-        Some(color) => { color.clone() }
-    }
-}
+pub fn init_color_palette(path: &Option<PathBuf>) {
+    let mut pal: Vec<Color> = Vec::new();
 
-pub fn get_random_color_from_palette() -> Color {
-    match COLOR_PALETTE.get() {
+    match path {
         None => {
-            warn!("Can't get color palette! Reverting back to default palette!");
-            get_random_color(&DEFAULT_PALETTE.to_vec())
+            //Default palette
+            pal = DEFAULT_PALETTE.to_vec();
         }
-        Some(pal) => {
-            get_random_color(pal)
+        Some(pal_path) => {
+            //Read color palette
+            match read_color_palette(&PathBuf::from(pal_path)) {
+                Ok(p) => {
+                    pal = p;
+                }
+                Err(e) => { warn!("{}", e.to_string()) }
+            };
         }
     }
-}
 
-pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
-    let default_args = fallback_arguments();
-    let args = ARGUMENTS.get().unwrap_or(&default_args);
-
-    //Convert given color
-    let def_color = match string_to_int(&args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())) {
-        Ok(c) => { c }
-        Err(_) => {
-            warn!("Can't parse given color. Using default color");
-            DEFAULT_COLOR.to_hex()
-        }
-    };
-
-    //If default color set, use it, else keep the animations color
-    let color = if def_color != DEFAULT_COLOR.to_hex() { Some(Color::from_hex(def_color)) } else { None };
-
-    //However, also check, if a random color should be chosen. If not, use whatever the last line yielded
-    if use_ran_color { Some(get_random_color_from_palette()) } else { color }
+    COLOR_PALETTE.get_or_init(|| pal);
 }
 
 pub fn read_color_palette(path: &PathBuf) -> Result<Vec<Color>, ColorError> {
@@ -171,6 +122,53 @@ pub fn read_color_palette(path: &PathBuf) -> Result<Vec<Color>, ColorError> {
         }
     }
     Ok(pal)
+}
+
+pub fn get_random_color_from_palette() -> Color {
+    match COLOR_PALETTE.get() {
+        None => {
+            warn!("Can't get color palette! Reverting back to default palette!");
+            get_random_color(&DEFAULT_PALETTE.to_vec())
+        }
+        Some(pal) => {
+            get_random_color(pal)
+        }
+    }
+}
+
+fn get_random_color(colors: &Vec<Color>) -> Color {
+    let mut rng = thread_rng();
+    match colors.choose(&mut rng) {
+        None => {
+            warn!("Using default color!");
+            DEFAULT_COLOR
+        }
+        Some(color) => { color.clone() }
+    }
+}
+
+pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
+    let default_args = fallback_arguments();
+    let args = ARGUMENTS.get().unwrap_or(&default_args);
+
+    //Convert given color
+    let def_color = match string_to_int(&args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())) {
+        Ok(c) => { c }
+        Err(_) => {
+            warn!("Can't parse given color. Using default color");
+            DEFAULT_COLOR.to_hex()
+        }
+    };
+
+    //If default color set, use it, else keep the animations color
+    let color = if def_color != DEFAULT_COLOR.to_hex() { Some(Color::from_hex(def_color)) } else { None };
+
+    //However, also check, if a random color should be chosen. If not, use whatever the last line yielded
+    if use_ran_color { Some(get_random_color_from_palette()) } else { color }
+}
+
+pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8{
+    ((channel_value as f32 / u8::MAX as f32).powf(gamma) * u8::MAX as f32 + 0.5).round() as u8
 }
 
 fn string_to_int(hex_string: &str) -> Result<u32, ParseIntError> {

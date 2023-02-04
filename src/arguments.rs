@@ -148,8 +148,8 @@ pub enum RendererType {
 
 impl Display for Arguments {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-
         let mut result = String::new();
+
         result.push_str(&*format!("\t-Skip startup animation: {}\n", self.skip_startup_animation.to_string()));
         result.push_str(&*format!("\t-Playback speed: {}\n", self.playback_speed));
         result.push_str(&*format!("\t-Maximum count of blinks: {}\n", self.max_blinks));

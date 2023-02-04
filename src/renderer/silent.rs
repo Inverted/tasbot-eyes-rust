@@ -13,4 +13,6 @@ impl Renderer for SilentRendererSettings {
     fn play_colored(&mut self, anim: &Animation, color: &Color) { debug!("Silent renderer with color overwrite") }
 
     fn clear(&mut self) { debug!("Clear console") }
+
+    fn print_config(&self) { debug!("No config for silent renderer needed") }
 }

@@ -1,4 +1,5 @@
 use std::{io, time};
+use std::fmt::{Display, Formatter, write};
 use std::io::Write;
 use std::os::unix::raw::time_t;
 
@@ -13,6 +14,16 @@ const EMPTY_CHARACTERS: &str = "  ";
 
 pub struct ConsoleRendererSettings {
     pub clear_console: bool,
+}
+
+impl Display for ConsoleRendererSettings {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut result = String::new();
+
+        result.push_str(&*format!("\t-Clear console after every frame: {}", self.clear_console));
+
+        write!(f, "{}", result)
+    }
 }
 
 impl Renderer for ConsoleRendererSettings {
@@ -33,10 +44,14 @@ impl Renderer for ConsoleRendererSettings {
     fn clear(&mut self) {
         clear_console();
     }
+
+    fn print_config(&self) {
+        info!("Start console renderer using those arguments:\n{}", self);
+    }
 }
 
 fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&Color>) {
-    //clear console, todo: no ask: make argument
+    //clear console
     if settings.clear_console {
         clear_console();
     }

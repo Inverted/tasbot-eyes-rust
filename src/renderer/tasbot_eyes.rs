@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use log::{info, warn};
 use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, RawColor, StripType};
 use rs_ws281x::bindings::ws2811_set_custom_gamma_factor;
@@ -42,6 +44,17 @@ pub struct TASBotRendererSettings {
     pub gamma: f32,
 }
 
+impl Display for TASBotRendererSettings {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut result = String::new();
+
+        result.push_str(&*format!("\t-Use gamma correction: {}\n", self.gamma_correction));
+        result.push_str(&*format!("\t-Gamma correction value: {}", self.gamma));
+
+        write!(f, "{}", result)
+    }
+}
+
 impl Renderer for TASBotRendererSettings {
     fn play(&mut self, anim: &Animation) {
         for frame in &anim.frames {
@@ -60,6 +73,8 @@ impl Renderer for TASBotRendererSettings {
     fn clear(&mut self) {
         clear(self);
     }
+
+    fn print_config(&self) { info!("Start TASBot renderer using those arguments:\n{}", self); }
 }
 
 fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Option<&Color>) {

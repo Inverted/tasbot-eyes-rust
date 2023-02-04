@@ -38,16 +38,17 @@ mod arguments;
 mod led;
 mod network;
 
-//itertools
-//cargo docs
-//always auto derive debug, when implementing Display
-//todo: clear on exit fast
+//todo: cargo docs
 //todo: also print out settings of renderer when starting
-//cfg for arm not working
+//todo: clear on exit as argument or clear on exit fast
+//todo: cfg for arm not working
+//todo: reorder files, lol
 
-/*
+/* Notes
 ? is propagating
 .expect is panicking with error message
+
+always auto derive debug, when implementing Display
  */
 
 pub const ENV_LOG_LEVEL: &str = "TASBOT_EYES_LOG_LEVEL";

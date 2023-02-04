@@ -4,6 +4,7 @@
  *              as a proof of concept and might be debugged at a later point!
  */
 
+use std::fmt::{Display, Formatter};
 use std::ops::Add;
 use log::{info, warn};
 use rs_ws281x::{Controller, RawColor, StripType};
@@ -33,6 +34,17 @@ pub struct LEDMatrixRenderer {
     pub gamma: f32,
 }
 
+impl Display for LEDMatrixRenderer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut result = String::new();
+
+        result.push_str(&*format!("\t-Use gamma correction: {}\n", self.gamma_correction));
+        result.push_str(&*format!("\t-Gamma correction value: {}", self.gamma));
+
+        write!(f, "{}", result)
+    }
+}
+
 impl Renderer for LEDMatrixRenderer {
     fn play(&mut self, anim: &Animation) {
         todo!();
@@ -53,6 +65,11 @@ impl Renderer for LEDMatrixRenderer {
     fn clear(&mut self) {
         todo!();
         clear(self);
+    }
+
+    fn print_config(&self) {
+        todo!();
+        info!("Start matrix renderer using those arguments:\n{}", self);
     }
 }
 
