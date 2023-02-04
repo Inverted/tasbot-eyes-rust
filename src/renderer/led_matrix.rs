@@ -29,6 +29,8 @@ pub enum LEDMatrixError {
 
 pub struct LEDMatrixRenderer {
     pub controller: Controller,
+    pub gamma_correction: bool,
+    pub gamma: f32,
 }
 
 impl Renderer for LEDMatrixRenderer {

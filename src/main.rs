@@ -42,6 +42,7 @@ mod network;
 //cargo docs
 //always auto derive debug, when implementing Display
 //todo: clear on exit fast
+//todo: also print out settings of renderer when starting
 //cfg for arm not working
 
 /*
@@ -95,7 +96,9 @@ fn main() {
             brightness,
             target_freq,
             dma,
-            inverted
+            inverted,
+            gamma_correction,
+            gamma,
         } => {
             /*
             let strip_type = match strip_type.parse::<StripType>() {
@@ -148,12 +151,20 @@ fn main() {
                 Some(*inverted),
             );
 
+            let mut g: f32 = *gamma;
+            if g < 0f32 {
+                warn!("Gamma value can't be smaller then 0! Setting it to 0");
+                g = 0f32;
+            }
+
             match config {
                 Ok(config) => {
                     match build_controller(config) {
                         Ok(controller) => {
                             let matrix = LEDMatrixRenderer {
                                 controller,
+                                gamma_correction: *gamma_correction,
+                                gamma: g,
                             };
 
                             start_eyes(matrix, queue.clone(), running);
@@ -173,14 +184,15 @@ fn main() {
 
         RendererType::TASBot {
             pin,
-            brightness
+            brightness,
+            gamma_correction,
+            gamma,
         } => {
             let mut bright: Option<u8> = None;
             if brightness.is_some() {
                 let mut b = brightness.unwrap();
                 bright = Some(b);
             }
-
 
             if pin.is_some() {
                 let p = pin.unwrap();
@@ -190,10 +202,18 @@ fn main() {
                 }
             }
 
+            let mut g: f32 = *gamma;
+            if g < 0f32 {
+                warn!("Gamma value can't be smaller then 0! Setting it to 0");
+                g = 0f32;
+            }
+
             match build_controller(get_tasbot_eye_config(*pin, bright)) {
                 Ok(controller) => {
                     let tasbot_eyes = TASBotRendererSettings {
                         controller,
+                        gamma_correction: *gamma_correction,
+                        gamma: g,
                     };
 
                     start_eyes(tasbot_eyes, queue.clone(), running);

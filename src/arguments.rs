@@ -76,14 +76,14 @@ pub struct Arguments {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum RendererType {
-    ///Render animations on current console
+    ///Render animations in current console
     Console{
         #[clap(short = 'c', long)]
         ///Clear the console after every frame
         clear: bool,
     },
 
-    ///Render animations using an LED matrix
+    ///Render animations on an LED matrix
     Matrix{
         //strip_type: String, //todo: also provide a list
 
@@ -111,9 +111,18 @@ pub enum RendererType {
         #[clap(short = 'i', long)]
         ///Set the invert flag
         inverted: bool,
+
+        #[clap(short = 'g', long)]
+        ///Use gamma correction
+        gamma_correction: bool,
+
+        #[clap(short = 'G', long, required = false)]
+        ///Gamma value for gamma correction
+        gamma: f32,
+        // Higher values will result in dimmer colors, lower values will be brighter. 1.0 is no correction.
     },
 
-    ///Render animations using blastermak's LED matrix for TASBot
+    ///Render animations on blastermak's LED matrix for TASBot
     TASBot{
         #[clap(short = 'd', long, required = false)]
         ///Change GPIO data pin. Possible values are between 2 to 27. Default is 10
@@ -122,6 +131,15 @@ pub enum RendererType {
         #[clap(short = 'b', long, required = false)]
         ///Set maximum possible brightness. Default is 4
         brightness: Option<u8>,
+
+        #[clap(short = 'g', long)]
+        ///Use gamma correction
+        gamma_correction: bool,
+
+        #[clap(short = 'G', long, required = false, default_value = "2.8")]
+        ///Value for gamma correction
+        gamma: f32,
+        // Higher values will result in dimmer colors, lower values will be brighter. 1.0 is no correction.
     },
 
     ///Render no animation at all (for debugging or testing)

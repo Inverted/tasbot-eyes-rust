@@ -1,7 +1,8 @@
 use log::{info, warn};
 use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, RawColor, StripType};
+use rs_ws281x::bindings::ws2811_set_custom_gamma_factor;
 
-use crate::color::Color;
+use crate::color::{Color, get_gamma_correction};
 use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
@@ -12,14 +13,13 @@ const DMA: u8 = 10;
 const STRIP_TYPE: StripType = StripType::Sk6812;
 const INVERTED: bool = false;
 
-//todo: as args
-//default values but not fixed
-pub const GPIO_PIN: u8 = 10;
-pub const BRIGHTNESS: u8 = 4;
-
 pub const SCREEN_WIDTH: usize = 28;
 pub const SCREEN_HEIGHT: usize = 8;
 pub const NUM_PIXELS: u32 = 154;
+
+//default values but not fixed
+pub const GPIO_PIN: u8 = 10;
+pub const BRIGHTNESS: u8 = 4;
 
 
 //From: https://github.com/jakobrs/tasbot-display/blob/b8854b3f0dc096d4609124a28d8e400acd774b29/src/tasbot.rs
@@ -38,6 +38,8 @@ pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] = [
 
 pub struct TASBotRendererSettings {
     pub controller: Controller,
+    pub gamma_correction: bool,
+    pub gamma: f32,
 }
 
 impl Renderer for TASBotRendererSettings {
@@ -97,6 +99,18 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
                             }
                         }
                     }
+
+                    if settings.gamma_correction {
+                        let corrected_color: Vec<u8> = rend_color.iter().map(|v| get_gamma_correction(*v, settings.gamma)).collect();
+
+                        rend_color = [
+                            corrected_color[0],
+                            corrected_color[1],
+                            corrected_color[2],
+                            0,
+                        ];
+                    }
+
                     leds[index] = rend_color;
                 }
             }

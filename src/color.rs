@@ -14,6 +14,8 @@ use thiserror::Error;
 use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
 
+const DEFAULT_GAMMA: f32 = 2.8;
+
 pub const RED: Color = Color { r: 255, g: 0, b: 0 };
 pub const YELLOW: Color = Color { r: 255, g: 255, b: 0 };
 pub const GREEN: Color = Color { r: 0, g: 255, b: 0 };
@@ -27,6 +29,10 @@ pub const DEFAULT_COLOR: Color = WHITE;
 const DEFAULT_PALETTE: [Color; 6] = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
 
 pub static COLOR_PALETTE: OnceCell<Vec<Color>> = OnceCell::new();
+
+pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8{
+    ((channel_value as f32 / u8::MAX as f32).powf(gamma) * u8::MAX as f32 + 0.5).round() as u8
+}
 
 pub fn init_color_palette(path: &Option<PathBuf>) {
     let mut pal: Vec<Color> = Vec::new();
