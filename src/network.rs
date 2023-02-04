@@ -50,9 +50,9 @@ impl FromStr for PlayMode {
         let lower = binding.as_str();
 
         match lower {
-            "Now" => Ok(Now),
-            "Queued" => Ok(Queued),
-            _ => Err(NetworkError::Conversion("Invalid")),
+            "now" => Ok(Now),
+            "queued" => Ok(Queued),
+            _ => Err(NetworkError::Conversion("Invalid play mode type")),
         }
     }
 }
