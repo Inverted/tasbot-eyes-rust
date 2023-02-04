@@ -9,10 +9,12 @@ use log::{info, warn};
 use once_cell::sync::OnceCell;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use serde_json::Error;
 use thiserror::Error;
 
 use crate::arguments;
 use crate::arguments::{ARGUMENTS, fallback_arguments};
+use crate::file_operations::{Palette, read_palette};
 
 pub const RED: Color = Color { r: 255, g: 0, b: 0 };
 pub const YELLOW: Color = Color { r: 255, g: 255, b: 0 };
@@ -32,6 +34,9 @@ pub static COLOR_PALETTE: OnceCell<Vec<Color>> = OnceCell::new();
 pub enum ColorError {
     #[error("An IO error occurred: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("An error occurred: {0}")]
+    Other(#[from] serde_json::Error),
 }
 
 
@@ -104,24 +109,19 @@ pub fn read_color_palette(path: &PathBuf) -> Result<Vec<Color>, ColorError> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
-    let mut pal: Vec<Color> = Vec::new();
-    for line in reader.lines() {
-        match line {
-            Ok(l) => {
-                if &l[0..1] != ";" { //support for comments
-                    match Color::from_hex_string(l.as_str()) {
-                        Ok(c) => {
-                            info!("Added #{} to color palette", format!("{}", c).truecolor(c.r, c.g, c.b));
-                            pal.push(c);
-                        }
-                        Err(e) => warn!("Problem with reading color: {}", e.to_string())
-                    };
-                }
+    let mut palette: Vec<Color> = Vec::new();
+    let pal = read_palette(path)?;
+    for hex_color in pal.colors {
+        match Color::from_hex_string(hex_color.as_str()) {
+            Ok(c) => {
+                info!("Added #{} to color palette", format!("{}", c).truecolor(c.r, c.g, c.b));
+                palette.push(c);
             }
-            Err(e) => warn!("Problem with reading line: {}", e.to_string())
-        }
+            Err(e) => warn!("Problem with reading color: {}", e.to_string())
+        };
     }
-    Ok(pal)
+
+    Ok(palette)
 }
 
 pub fn get_random_color_from_palette() -> Color {

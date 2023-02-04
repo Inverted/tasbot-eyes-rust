@@ -69,6 +69,10 @@ pub struct Arguments {
     ///Continue with normal program flow after playlist
     pub continue_after_playlist: bool,
 
+    #[clap(short = 'i', long, required = false, default_value="8082")]
+    ///Set the TCP port that is to use for receiving animations
+    pub inject_port: u16,
+
     #[command(subcommand)]
     ///Which renderer to use
     pub renderer: RendererType,
@@ -160,7 +164,8 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
         result.push_str(&*format!("\t-Color palette for random colors: {}\n", self.palette.clone().unwrap_or(PathBuf::from("None")).display()));
         result.push_str(&*format!("\t-Playlist to play: {}\n", self.playlist.clone().unwrap_or(PathBuf::from("None")).display()));
-        result.push_str(&*format!("\t-Continue with normal flow after playlist: {}", self.continue_after_playlist.to_string()));
+        result.push_str(&*format!("\t-Continue with normal flow after playlist: {}\n", self.continue_after_playlist.to_string()));
+        result.push_str(&*format!("\t-TCP port for receiving animations: {}", self.inject_port));
 
         write!(f, "{}", result)
     }
@@ -215,6 +220,7 @@ pub fn fallback_arguments() -> Arguments {
         palette: None,
         playlist: None,
         continue_after_playlist: false,
+        inject_port: 8082,
         renderer: RendererType::Silent,
     }
 }

@@ -14,7 +14,6 @@ use crate::gif::{Animation, Frame, GifError, read_animation};
 
 pub trait Renderer {
     fn play(&mut self, anim: Animation);
-    //todo: no ask: animation should be consumed, ig
     fn play_colored(&mut self, anim: Animation, color: &Color);
     fn clear(&mut self);
     fn print_config(&self);

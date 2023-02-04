@@ -21,8 +21,29 @@ pub enum FileOperationsError {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Playlist {
-    file_type: String,
+    data_type: String,
     pub entries: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Palette {
+    data_type: String,
+    pub colors: Vec<String>,
+}
+
+pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error>{
+    match fs::read_to_string(path) {
+        Ok(data) => {
+            let palette: Palette = serde_json::from_str(&data)?;
+            Ok(palette)
+        }
+        Err(e) => {
+            let message = format!("Can't read palette: {}", e.to_string());
+            error!("{}", message);
+            panic!("{}", message);
+            //Error::new(serde_json::error::Category::Data, "Can't read palette")
+        }
+    }
 }
 
 pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Error>{
