@@ -1,4 +1,5 @@
 use std::{env, thread};
+use std::fmt::format;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -18,14 +19,31 @@ use crate::renderer::silent::SilentRendererSettings;
 use crate::renderer::tasbot_eyes::{get_tasbot_eye_config, SCREEN_HEIGHT, SCREEN_WIDTH, TASBotRendererSettings};
 use crate::tasbot::start_eyes;
 
+/// Contain operations, that read or write to a permanent storage
 mod file_operations;
+
+/// Read and parse GIF data
 mod gif;
+
+/// Has the trait for all renderer and some common logic among them
 mod renderer;
+
+/// Contains a basic console logger
 mod logging;
+
+/// TASBot specific logic
 mod tasbot;
+
+/// The color structure and other conversion code
 mod color;
+
+/// Define and parse command line arguments
 mod arguments;
+
+/// Contains the hardware configuration structure and a builder for it
 mod led;
+
+/// Network code such as the animation injection thread are here
 mod network;
 
 //todo: cargo docs
@@ -40,8 +58,11 @@ mod network;
 always auto derive debug, when implementing Display
  */
 
+/// The environmental variable, that is checked for the log level to use. See [log::Level](https://docs.rs/log/latest/log/enum.Level.html)
 pub const ENV_LOG_LEVEL: &str = "TASBOT_EYES_LOG_LEVEL";
-pub const LOG_LEVEL_FALLBACK: &str = "trace";
+
+/// The fallback log level, when the environmental variable cannot be found
+pub const LOG_LEVEL_FALLBACK: &str = "warn";
 
 fn main() {
     let running = Arc::new(AtomicBool::new(true));
@@ -68,6 +89,7 @@ fn main() {
 
     //Check arguments and start with right renderer
     match &args.renderer {
+
         RendererType::Console {
             clear
         } => {
@@ -98,7 +120,7 @@ fn main() {
                     "Ws2812".to_string()
                 }
             };
-            todo: pull library and implement `StripType: FromStr`
+            todo: pull ws281x library and implement `StripType: FromStr`
              */
 
             if *pin > 27 || *pin < 2 {
@@ -130,6 +152,12 @@ fn main() {
                 }
             }
 
+            let mut g: f32 = *gamma;
+            if g < 0f32 {
+                warn!("Gamma value can't be smaller then 0! Setting it to 0");
+                g = 0f32;
+            }
+
             let config = get_led_matrix_config(
                 Ws2812,
                 *pin,
@@ -140,12 +168,6 @@ fn main() {
                 *dma,
                 Some(*inverted),
             );
-
-            let mut g: f32 = *gamma;
-            if g < 0f32 {
-                warn!("Gamma value can't be smaller then 0! Setting it to 0");
-                g = 0f32;
-            }
 
             match config {
                 Ok(config) => {
@@ -166,8 +188,9 @@ fn main() {
                     }
                 }
                 Err(e) => {
-                    error!("Can't create LED hardware config: {}", e.to_string());
-                    panic!();
+                    let message = format!("Can't create LED hardware config: {}", e.to_string());
+                    error!("{}", message);
+                    panic!("{}", message);
                 }
             }
         }
@@ -221,6 +244,15 @@ fn main() {
     }
 }
 
+///Setup the handler that gets called, when the process receives an SIGINT
+///
+/// # Input
+/// * `running`: The global-like bool, that indicates if the program is running or not
+///
+/// # Todo
+/// * Its planned, to pack the renderer in its own thread. Potentially also wrap the render in an
+/// Arc<Mutex<>> as well and pass it besides the handle to the thread to this function as well.
+/// When a SIGINT is received then, kill the thread, call renderer.clear() and then force exit.
 fn setup_sigint_handler(running: &Arc<AtomicBool>) {
     let r = running.clone();
     match ctrlc::set_handler(move || {
@@ -238,6 +270,11 @@ fn setup_sigint_handler(running: &Arc<AtomicBool>) {
     };
 }
 
+/// Setup the console logger
+///
+/// # Input
+/// * `level`: The log level as string. Have a look at [log::Level](https://docs.rs/log/latest/log/enum.Level.html)
+/// for further information
 fn setup_logger(level: String) {
     log::set_logger(&CONSOLE_LOGGER).expect("[EXCEPT] Can't set logger");
 
@@ -254,6 +291,8 @@ fn setup_logger(level: String) {
     info!("Set log level to {}", log_level.to_string());
 }
 
+/// Get the fallback log level. This is a function, so it can be easier printed to the console,
+/// that the fallback log level is used.
 fn get_fallback_log_level() -> String {
     println!("{}", format!("Using the fallback log level! Set the \"{}\" environment variable to a valid (rust) log level!", ENV_LOG_LEVEL).red());
     LOG_LEVEL_FALLBACK.to_string()

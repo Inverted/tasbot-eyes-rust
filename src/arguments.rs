@@ -5,8 +5,9 @@ use clap::Parser;
 use log::{info, warn};
 use once_cell::sync::OnceCell;
 
-use crate::color::DEFAULT_COLOR;
+use crate::color::FALLBACK_COLOR;
 
+///Globally accessible argument results. Never changes after initialized
 pub static ARGUMENTS: OnceCell<Arguments> = OnceCell::new();
 
 #[derive(Parser, Debug)]
@@ -157,7 +158,7 @@ impl Display for Arguments {
         result.push_str(&*format!("\t-Maximum delay between blinks: {} ms\n", self.max_delay));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations: {}\n", self.color_overwrite.to_string()));
         result.push_str(&*format!("\t-Overwrite colors of grayscale animations, base and blinks: {}\n", self.color_overwrite_all.to_string()));
-        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string())));
+        result.push_str(&*format!("\t-Color for base, blinks and grayscale animations: #{}\n", self.default_color.clone().unwrap_or(FALLBACK_COLOR.to_string())));
         result.push_str(&*format!("\t-Color palette for random colors: {}\n", self.palette.clone().unwrap_or(PathBuf::from("None")).display()));
         result.push_str(&*format!("\t-Playlist to play: {}\n", self.playlist.clone().unwrap_or(PathBuf::from("None")).display()));
         result.push_str(&*format!("\t-Continue with normal flow after playlist: {}\n", self.continue_after_playlist.to_string()));
@@ -190,7 +191,7 @@ fn check_arguments(mut raw_args: Arguments) -> Arguments {
     }
 
     //Attempt to convert it. If possible, everything is good
-    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(DEFAULT_COLOR.to_string()), 16) {
+    raw_args.default_color = match u32::from_str_radix(&raw_args.default_color.clone().unwrap_or(FALLBACK_COLOR.to_string()), 16) {
         Ok(_) => { raw_args.default_color } //nothing changes
         Err(e) => {
             warn!("Given color is not in a valid format. Using default color: {}", e.to_string());

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use log::{info, warn};
 use rs_ws281x::{Controller, RawColor, StripType};
 
-use crate::color::{Color, get_gamma_correction};
+use crate::color::{BLACK, Color, get_gamma_correction};
 use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
@@ -102,14 +102,9 @@ fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Optio
                         //Use color given
                         Some(color) => {
                             if pixel_is_black(&frame.pixels[y][x]) {
-                                rend_color = [0, 0, 0, 0];
+                                rend_color = BLACK.to_raw();
                             } else {
-                                rend_color = [
-                                    color.b,
-                                    color.g,
-                                    color.r,
-                                    0,
-                                ];
+                                rend_color = color.to_raw();
                             }
                         }
                     }

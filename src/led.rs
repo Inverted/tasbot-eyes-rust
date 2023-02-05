@@ -7,16 +7,39 @@ use rs_ws281x::{ChannelBuilder, Controller, ControllerBuilder, StripType, WS2811
     [255, 0, 0, 0] //blue
  */
 
+/// Required parameter for setting up an hardware instance
 pub struct LEDHardwareConfig {
+    /// The frequency the for the pulse (i.e., rectangular) wave signal
     pub frequenz: u32,
+
+    /// The DMA channel of the Raspberry Pi between 0 and 13
     pub dma: i32,
+
+    /// Which GPIO the hardware is connected to
     pub pin: i32,
+
+    /// The total count of all LEDs
     pub count: i32,
+
+    ///Which type of strip (and color order) the hardware is (e.g. WS2812B, SK6812, SK6812W,...)
     pub strip_type: StripType,
+
+    ///How brights the LEDs should be
     pub brightness: u8,
+
+    ///If the LEDs are in the inverted order
     pub inverted: bool,
 }
 
+/// Build a LED controller
+///
+/// # Input
+/// The `LEDHardwareConfig`, that is to use
+///
+/// # Output
+/// A `Result<Controller, WS2811Error>`, were
+/// * `Controller` is the successfully build LED controller
+/// * `WS2811Error` is thrown, when the controller can't be build
 pub fn build_controller(config: LEDHardwareConfig) -> Result<Controller, WS2811Error> {
     //#[cfg(not(target_arch = "arm"))]
     //return Err(WS2811Error::HwNotSupported);

@@ -5,7 +5,10 @@ use std::path::PathBuf;
 use log::info;
 use thiserror::Error;
 
+/// The required height of an animation
 const HEIGHT: usize = 8;
+
+/// The required width of an animation
 const WIDTH: usize = 28;
 
 #[derive(Error, Debug)]
@@ -17,32 +20,53 @@ pub enum GifError {
     Decode(#[from] gif::DecodingError),
 }
 
+/// Structure that represents all the needed data from a GIF file
 pub struct Animation {
+    /// All frames the GIF animation contains
     pub frames: Vec<Frame>,
+
+    /// Indicates of **all** pixel of the animation are grayscale.
+    /// If theres just a single pixel at any frame, that is not grayscale,
+    /// the entire `Animation` counts as not grayscale anymore
     pub grayscale: bool,
 }
 
 #[derive(Eq, PartialEq, Debug)]
+///A single frame of an animation with its delay
 pub struct Frame {
+    /// 2D array of all pixel of that frame
     pub pixels: [[Pixel; WIDTH]; HEIGHT],
+
+    /// The delay of the frame, meaning, the duration *this* frame is shown.
+    /// GIF frame delay are a multiple of 10 ms
     pub delay: u16,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+///A single pixel of an frame
 pub struct Pixel {
+    ///Red channel
     pub r: u8,
+
+    ///Green channel
     pub g: u8,
+
+    ///Blue channel
     pub b: u8,
+
+    /// (Unused) alpha channel
     pub a: u8,
 }
 
 impl Display for Pixel {
+    ///Format a pixel to be shown as it individual channel values
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Pixel: R:{}, G:{}, B:{}, A:{}", self.r, self.g, self.b, self.a)
     }
 }
 
 impl Display for Frame {
+    ///Format a frame to be rendered in black and white
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
 
@@ -57,6 +81,21 @@ impl Display for Frame {
     }
 }
 
+/// Read an animation from the given `PathBuf`
+///
+/// # Input
+/// The `PathBuf` where the animation is stored
+///
+/// # Output
+/// A `Result<Animation, GifError>` with
+/// * `Animation` being the successfully read animation
+/// * `GifError` being thrown when:
+///     - The file cannot be opened
+///     - The file info cannot be read
+///     - Any frame cannot be read
+///
+/// # Todo
+/// Some of this code should be moved to the `file_operations` module
 pub fn read_animation(path: &PathBuf) -> Result<Animation, GifError> {
     info!("Attempt to read ({})", path.to_str().unwrap_or("Invalid path"));
 
@@ -68,18 +107,19 @@ pub fn read_animation(path: &PathBuf) -> Result<Animation, GifError> {
     let file = File::open(path)?;
     let mut decoder = decoder.read_info(file)?;
 
-    //Interpret data
+    //Setup structure
     let mut anim: Animation = Animation {
         frames: vec![],
         grayscale: true,
     };
 
+    //Interpret data
     while let Some(raw_frame) = decoder.read_next_frame()? {
         let frame = read_frame(raw_frame);
 
         //A single frame with color is worth enough to mark the entire animation as colorful
         if anim.grayscale {
-            anim.grayscale = frame_is_grayscaled(&frame);
+            anim.grayscale = frame_is_grayscale(&frame);
         }
 
         anim.frames.push(frame);
@@ -89,6 +129,13 @@ pub fn read_animation(path: &PathBuf) -> Result<Animation, GifError> {
     Ok(anim)
 }
 
+/// Read the (next) frame of an `Animation`
+///
+/// # Input
+/// A raw `gif::Frame` of the `Decoder` that to be parsed
+///
+/// # Output
+/// A `Frame` of our own kind
 fn read_frame(raw_frame: &gif::Frame) -> Frame {
     //Init empty struct
     let mut frame: Frame = Frame {
@@ -121,12 +168,20 @@ fn read_frame(raw_frame: &gif::Frame) -> Frame {
     frame
 }
 
-fn frame_is_grayscaled(frame: &Frame) -> bool {
+/// Check if a given `Frame` is grayscale by checking all it's pixels
+///
+/// # Input
+/// The `Frame` that is to check
+///
+/// # Output
+/// If the `Frame` is grayscale
+fn frame_is_grayscale(frame: &Frame) -> bool {
     let mut result = true;
 
     for row in frame.pixels {
         for pixel in row {
-            if !pixel_is_greyscale(&pixel) {
+            if !pixel_is_grayscale(&pixel) {
+                // A not grayscale image is enough to mark frame as not grayscale
                 result = false;
                 break;
             }
@@ -137,11 +192,25 @@ fn frame_is_grayscaled(frame: &Frame) -> bool {
     result
 }
 
+/// Check if a given `Pixel` is black
+///
+/// # Input
+/// The `Pixel` to check
+///
+/// # Output
+/// If the `Pixel` is black
 pub fn pixel_is_black(pixel: &Pixel) -> bool {
     pixel.r == 0 && pixel.g == 0 && pixel.b == 0
 }
 
-fn pixel_is_greyscale(pixel: &Pixel) -> bool {
+/// Check if a given `Pixel` is grayscale
+///
+/// # Input
+/// The `Pixel` to check
+///
+/// # Output
+/// If the `Pixel` is grayscale
+fn pixel_is_grayscale(pixel: &Pixel) -> bool {
     pixel.r == pixel.g && pixel.g == pixel.b
 }
 
@@ -155,13 +224,13 @@ mod tests {
         let anim = read_animation(&PathBuf::from("gifs/base.gif")).unwrap();
         assert_eq!(anim.grayscale, true);
         assert_eq!(anim.frames.len(), 1);
-        assert_eq!(frame_is_grayscaled(&anim.frames[0]), true);
+        assert_eq!(frame_is_grayscale(&anim.frames[0]), true);
 
         // Test reading a colorful animation
         let anim = read_animation(&PathBuf::from("gifs/testbot.gif")).unwrap();
         assert_eq!(anim.grayscale, false);
         assert_eq!(anim.frames.len(), 1);
-        assert_eq!(frame_is_grayscaled(&anim.frames[0]), false);
+        assert_eq!(frame_is_grayscale(&anim.frames[0]), false);
     }
 
     #[test]
@@ -185,25 +254,25 @@ mod tests {
             pixels: [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT],
             delay: 100,
         };
-        assert_eq!(frame_is_grayscaled(&frame), true);
+        assert_eq!(frame_is_grayscale(&frame), true);
 
         // Test a colorful frame
         let frame = Frame {
             pixels: [[Pixel { r: 128, g: 128, b: 64, a: 255 }; WIDTH]; HEIGHT],
             delay: 100,
         };
-        assert_eq!(frame_is_grayscaled(&frame), false);
+        assert_eq!(frame_is_grayscale(&frame), false);
     }
 
     #[test]
     fn test_pixel_is_greyscale() {
         // Test a grayscale pixel
         let pixel = Pixel { r: 128, g: 128, b: 128, a: 255 };
-        assert_eq!(pixel_is_greyscale(&pixel), true);
+        assert_eq!(pixel_is_grayscale(&pixel), true);
 
         // Test a colorful pixel
         let pixel = Pixel { r: 128, g: 128, b: 64, a: 255 };
-        assert_eq!(pixel_is_greyscale(&pixel), false);
+        assert_eq!(pixel_is_grayscale(&pixel), false);
     }
 
     #[test]

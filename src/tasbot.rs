@@ -177,7 +177,7 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<
 }
 
 fn blink_sleep(delay: u64) {
-    info!("Sleeping for blink for {} ms", delay);
+    info!("Sleeping for {} ms for blink", delay);
     thread::sleep(Duration::from_millis(delay));
 }
 

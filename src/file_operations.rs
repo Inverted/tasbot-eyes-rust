@@ -5,9 +5,16 @@ use log::error;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// The path to the base animation
 pub const BASE_PATH: &str = "./gifs/base.gif";
+
+/// The path to the startup animation
 pub const STARTUP_PATH: &str = "./gifs/startup.gif";
+
+/// The path to the directory with all the animations
 pub const OTHER_PATH: &str = "./gifs/others/";
+
+/// The path to the directory, with all the blink animations
 pub const BLINK_PATH: &str = "./gifs/blinks/";
 
 #[derive(Error, Debug)]
@@ -17,22 +24,30 @@ pub enum FileOperationsError {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// Structure the JSON playlist files get parsed to
 pub struct Playlist {
+    ///Indicates that a JSON file contains a playlist
     data_type: String,
+
+    ///Paths as strings to the animation that should get played in given order
     pub entries: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// Structure JSON palettes get parsed to
 pub struct Palette {
+    ///Indicates that a JSON file contains a palette
     data_type: String,
+
+    ///Entries are hex color strings
     pub colors: Vec<String>,
 }
 
-/// Read the given palette at the given path into a Palette structure
+/// Read the given palette at the given path into a `Palette`
 /// # Input
-/// * `path` - the path to the palette file
+/// * A `PathBuf` to the path to the palette file
 /// # Output
-/// A Palette structure containing a vector of colors as strings
+/// A `Palette` containing a vector of colors as strings
 pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error> {
     match fs::read_to_string(path) {
         Ok(data) => {
@@ -48,6 +63,11 @@ pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error>
     }
 }
 
+/// Read the given playlist at the given path into a Playlist
+/// # Input
+/// * A `PathBuf` to the path to the playlist file
+/// # Output
+/// A `Playlist` containing a vector of paths to animations
 pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Error> {
     match fs::read_to_string(path) {
         Ok(data) => {
@@ -63,8 +83,19 @@ pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Erro
     }
 }
 
+/// List all files in a given directory
+///
+/// # Input
+/// A `Path` to the directory
+///
+/// # Output
+/// A `Result<Vec<PathBuf>, FileOperationsError>, where
+/// * `Vec<PathBuf>` is the list of all files within the directory
+/// * `FileOperationsError` is thrown, when the directory cannot be read
+///
+/// # Credits
+/// This is a modified version of one of the [std::fs::read_dir Examples](https://doc.rust-lang.org/std/fs/fn.read_dir.html#examples)
 pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
-    //Modified https://doc.rust-lang.org/std/fs/fn.read_dir.html
 
     let entries = fs::read_dir(dir)?
         .filter_map(|res| {
