@@ -45,6 +45,7 @@ pub struct ProcessedMessage {
     path: PathBuf,
 }
 
+#[derive(PartialEq, Debug)]
 /// How the animation should be played
 enum PlayMode {
 
@@ -219,4 +220,29 @@ fn process_message(message: Message, prev_recv_count: u8) -> Result<ProcessedMes
         }
         Err(e) => Err(NetworkError::from(e))
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    use std::fs;
+    use tempdir::TempDir;
+
+    #[test]
+    fn test_process_message() {
+        let message = Message {
+            data: vec![0, 1, 2, 3, 4],
+            mode: "queued".to_string(),
+        };
+        let prev_recv_count = 0;
+
+        let processed_message = process_message(message, prev_recv_count).unwrap();
+        assert_eq!(processed_message.play_mode, Queued);
+        let expected_path = PathBuf::from("/tmp/").join("received_file_0.gif");
+        assert_eq!(processed_message.path, expected_path);
+
+        let file_contents = fs::read(expected_path).unwrap();
+        assert_eq!(file_contents, vec![0, 1, 2, 3, 4]);
+    }
 }

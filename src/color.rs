@@ -43,8 +43,7 @@ pub enum ColorError {
     Other(String),
 }
 
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 ///The structure that's used to store the color value of an pixel
 pub struct Color {
     pub r: u8,
@@ -253,4 +252,99 @@ pub fn get_gamma_correction(channel_value: u8, gamma: f32) -> u8 {
     let mut g = gamma;
     if g < 0f32 { g = 0f32 }
     ((channel_value as f32 / u8::MAX as f32).powf(g) * u8::MAX as f32 + 0.5).round() as u8
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::path::PathBuf;
+    use rand::Rng;
+
+    #[test]
+    fn test_to_hex() {
+        let color = Color { r: 255, g: 0, b: 0 };
+        let hex = color.to_hex();
+        assert_eq!(hex, 0xff0000);
+    }
+
+    #[test]
+    fn test_from_hex() {
+        let hex = 0xff0000;
+        let color = Color::from_hex(hex);
+        assert_eq!(color, Color { r: 255, g: 0, b: 0 });
+    }
+
+    #[test]
+    fn test_from_hex_string() {
+        let hex_string = "ff0000";
+        let color = Color::from_hex_string(hex_string).unwrap();
+        assert_eq!(color, Color { r: 255, g: 0, b: 0 });
+
+        let hex_string = "fff";
+        let result = Color::from_hex_string(hex_string);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_to_raw() {
+        let color = Color { r: 255, g: 0, b: 0 };
+        let raw = color.to_raw();
+        assert_eq!(raw, [0, 0, 255, 0]);
+    }
+
+    #[test]
+    fn test_read_color_palette() {
+        let path = PathBuf::from("test_palette.json");
+        let palette = read_color_palette(&path).unwrap();
+        assert_eq!(palette.len(), 3);
+        assert_eq!(palette[0], Color { r: 255, g: 0, b: 0 });
+        assert_eq!(palette[1], Color { r: 0, g: 255, b: 0 });
+        assert_eq!(palette[2], Color { r: 0, g: 0, b: 255 });
+    }
+
+    /*
+    #[test]
+    fn test_read_color_palette_with_error() {
+        let path = PathBuf::from("invalid_palette.json");
+        let result = read_color_palette(&path);
+        assert!(result.is_err());
+    }
+     */
+
+    fn mock_palette() -> Vec<Color> {
+        vec![Color::from_hex_string("FF0000").unwrap(),
+             Color::from_hex_string("00FF00").unwrap(),
+             Color::from_hex_string("0000FF").unwrap(),
+        ]
+    }
+
+    #[test]
+    fn test_get_random_color_from_palette_with_palette() {
+        let mock_palette = mock_palette();
+        let color = get_random_color(&mock_palette);
+
+        assert!(mock_palette.contains(&color));
+    }
+
+    #[test]
+    fn test_get_random_color_from_palette_same_color_multiple_calls() {
+        let mock_palette = mock_palette();
+
+        let color_a = get_random_color(&mock_palette);
+        let color_b = get_random_color(&mock_palette);
+
+        assert!(mock_palette.contains(&color_a));
+        assert!(mock_palette.contains(&color_b));
+    }
+
+    #[test]
+    fn test_get_gamma_correction() {
+        let channel_value = 128;
+        let gamma = 2.2;
+
+        let corrected_value = get_gamma_correction(channel_value, gamma);
+
+        assert!(corrected_value > 0 && corrected_value < u8::MAX);
+    }
 }

@@ -297,3 +297,15 @@ fn get_fallback_log_level() -> String {
     println!("{}", format!("Using the fallback log level! Set the \"{}\" environment variable to a valid (rust) log level!", ENV_LOG_LEVEL).red());
     LOG_LEVEL_FALLBACK.to_string()
 }
+
+#[cfg(test)]
+mod main_tests {
+    use crate::{get_fallback_log_level, LOG_LEVEL_FALLBACK};
+
+    #[test]
+    fn test_get_fallback_log_level() {
+        let expected = LOG_LEVEL_FALLBACK.to_string();
+        let result = get_fallback_log_level();
+        assert_eq!(expected, result);
+    }
+}

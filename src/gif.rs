@@ -248,7 +248,7 @@ mod tests {
 
 
     #[test]
-    fn test_frame_is_grayscaled() {
+    fn test_frame_is_grayscale() {
         // Test a grayscale frame
         let frame = Frame {
             pixels: [[Pixel { r: 128, g: 128, b: 128, a: 255 }; WIDTH]; HEIGHT],

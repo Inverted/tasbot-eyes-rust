@@ -73,3 +73,19 @@ pub fn sleep_frame_delay(frame: &Frame) {
     info!("Sleeping for delay for {} ms", ms.as_millis());
     std::thread::sleep(ms);
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::gif::Pixel;
+    use super::*;
+
+    #[test]
+    fn test_sleep_frame_delay() {
+        let frame = Frame { pixels: [[Pixel { r: 0, g: 0, b: 0, a: 0 }; 28]; 8], delay: 42 };
+        let start = time::Instant::now();
+        sleep_frame_delay(&frame);
+        let elapsed = start.elapsed();
+        let elapsed_ms = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
+        assert!(elapsed_ms >= 420 && elapsed_ms <= 430, "Elapsed time: {} ms", elapsed_ms);
+    }
+}

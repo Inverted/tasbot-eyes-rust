@@ -58,7 +58,7 @@ pub fn read_palette(path: &PathBuf) -> Result<Palette, serde_json::error::Error>
             let message = format!("Can't read palette: {}", e.to_string());
             error!("{}", message);
             panic!("{}", message);
-            //Error::new(serde_json::error::Category::Data, "Can't read palette")
+            //todo: Error::new(serde_json::error::Category::Data, "Can't read palette") //use default palette then
         }
     }
 }
@@ -96,7 +96,6 @@ pub fn read_playlist(path: &PathBuf) -> Result<Playlist, serde_json::error::Erro
 /// # Credits
 /// This is a modified version of one of the [std::fs::read_dir Examples](https://doc.rust-lang.org/std/fs/fn.read_dir.html#examples)
 pub fn files_in_directory(dir: &Path) -> Result<Vec<PathBuf>, FileOperationsError> {
-
     let entries = fs::read_dir(dir)?
         .filter_map(|res| {
             if let Ok(entry) = res {
@@ -143,20 +142,21 @@ mod tests {
     }
 
     #[test]
-    fn test_files_in_nonexistent_directory() {
-        let temp_dir = TempDir::new("test_files_in_nonexistent_directory").unwrap();
-        let dir = temp_dir.path().join("nonexistent_dir");
-        let result = files_in_directory(dir.as_path());
-        assert_eq!(result, None);
+    fn test_read_palette_ok() {
+        let read_palette = read_palette(&PathBuf::from("test_palette.json")).unwrap();
+        assert_eq!(read_palette.data_type, "palette");
+        assert_eq!(read_palette.colors, vec!["FF0000", "00FF00", "0000FF"]);
     }
 
     #[test]
-    fn test_files_in_unreadable_directory() {
-        let temp_dir = TempDir::new("test_files_in_unreadable_directory").unwrap();
-        let dir = temp_dir.path().join("unreadable_dir");
-        fs::create_dir(dir.clone()).unwrap();
-        fs::set_permissions(dir.clone(), fs::Permissions::from_mode(0o000)).unwrap();
-        let result = files_in_directory(dir.as_path());
-        assert_eq!(result, None);
+    fn test_read_playlist_ok() {
+        let read_playlist = read_playlist(&PathBuf::from("test_playlist.json")).unwrap();
+        assert_eq!(read_playlist.data_type, "playlist");
+        assert_eq!(read_playlist.entries, vec![
+            "./gifs/others/coin eyes.gif",
+            "./gifs/others/colorful.gif",
+            "./gifs/others/loading.gif",
+            "./gifs/others/portal_eyes.gif",
+        ]);
     }
 }

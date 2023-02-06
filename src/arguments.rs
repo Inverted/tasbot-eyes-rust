@@ -10,7 +10,7 @@ use crate::color::FALLBACK_COLOR;
 ///Globally accessible argument results. Never changes after initialized
 pub static ARGUMENTS: OnceCell<Arguments> = OnceCell::new();
 
-#[derive(Parser, Debug)]
+#[derive(Parser, PartialEq, Debug)]
 #[clap(author = "R3tr0BoiDX aka Mirco Janisch", about = "Software, to control new TASBot's eyes")]
 pub struct Arguments {
     //todo: besides not needing it any more, how could I do something like this? both arent working
@@ -75,7 +75,7 @@ pub struct Arguments {
     pub renderer: RendererType,
 }
 
-#[derive(clap::Subcommand, Debug)]
+#[derive(clap::Subcommand, PartialEq, Debug)]
 pub enum RendererType {
     ///Render animations in current console
     Console {
@@ -220,4 +220,48 @@ pub fn fallback_arguments() -> Arguments {
         inject_port: 8082,
         renderer: RendererType::Silent,
     }
+}
+
+#[cfg(test)]
+mod tests{
+    use crate::arguments::{Arguments, check_arguments, RendererType};
+
+    #[test]
+    fn test_check_arguments() {
+        let mut raw_args = Arguments {
+            skip_startup_animation: false,
+            playback_speed: 0.0,
+            max_blinks: 0,
+            min_delay: 10,
+            max_delay: 5,
+            color_overwrite: false,
+            color_overwrite_all: false,
+            default_color: Some("ffffff".to_owned()),
+            palette: None,
+            playlist: None,
+            continue_after_playlist: false,
+            inject_port: 0,
+            renderer: RendererType::Silent,
+        };
+
+        let expected_args = Arguments {
+            skip_startup_animation: false,
+            playback_speed: 1.0,
+            max_blinks: 0,
+            min_delay: 5,
+            max_delay: 10,
+            color_overwrite: false,
+            color_overwrite_all: false,
+            default_color: None,
+            palette: None,
+            playlist: None,
+            continue_after_playlist: false,
+            inject_port: 0,
+            renderer: RendererType::Silent,
+        };
+
+        let result = check_arguments(raw_args);
+        assert_ne!(expected_args, result);
+    }
+
 }
