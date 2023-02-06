@@ -9,22 +9,41 @@ use crate::led::LEDHardwareConfig;
 use crate::renderer::{Renderer, sleep_frame_delay};
 
 //fixed values
+/// The frequency the for the pulse (i.e., rectangular) wave signal for TASBot
 const TARGET_FREQ: u32 = 800_000;
+
+/// The DMA channel of the Raspberry Pi
 const DMA: u8 = 10;
+
+///The strip type TASBots eyes are based on
 const STRIP_TYPE: StripType = StripType::Sk6812;
+
+///If the LEDs are in the inverted order
 const INVERTED: bool = false;
 
+///The height of the TASBot display
 pub const SCREEN_WIDTH: usize = 28;
+
+///The height of the TASBot display
 pub const SCREEN_HEIGHT: usize = 8;
+
+///The actual count of LEDs TASBots displays
 pub const NUM_PIXELS: u32 = 154;
 
+
+
 //default values but not fixed
-pub const GPIO_PIN: u8 = 10;
-pub const BRIGHTNESS: u8 = 4;
+///The default GPIO pin the display is using on the Raspberry Pi
+pub const DEFAULT_GPIO_PIN: u8 = 10;
+
+///The default brightness of the LEDs
+pub const DEFAULT_BRIGHTNESS: u8 = 4;
 
 
-//From: https://github.com/jakobrs/tasbot-display/blob/b8854b3f0dc096d4609124a28d8e400acd774b29/src/tasbot.rs
 #[rustfmt::skip]
+/// The translation matrix, that converts any given 2D index to the actual index of the display on TASBots display
+///
+/// From [jakobrs original tasbot-display software](https://github.com/jakobrs/tasbot-display/blob/b8854b3f0dc096d4609124a28d8e400acd774b29/src/tasbot.rs)
 pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] = [
     [None, None, Some(0), Some(1), Some(2), Some(3), None, None, None, None, Some(101), Some(100), Some(99), Some(98), Some(97), Some(96), Some(95), Some(94), None, None, None, None, Some(105), Some(104), Some(103), Some(102), None, None],
     [None, Some(4), Some(5), Some(6), Some(7), Some(8), Some(9), None, None, Some(84), Some(85), Some(86), Some(87), Some(88), Some(89), Some(90), Some(91), Some(92), Some(93), None, None, Some(111), Some(110), Some(109), Some(108), Some(107), Some(106), None],
@@ -36,7 +55,7 @@ pub const PIXEL_POSITIONS: [[Option<usize>; SCREEN_WIDTH]; SCREEN_HEIGHT] = [
     [None, None, Some(48), Some(49), Some(50), Some(51), None, None, None, Some(69), Some(52), Some(53), Some(54), Some(55), Some(56), Some(57), Some(58), Some(59), Some(60), None, None, None, Some(153), Some(152), Some(151), Some(150), None, None]
 ];
 
-
+/// Configuration for the TASBot renderer
 pub struct TASBotRendererSettings {
     pub controller: Controller,
     pub gamma_correction: bool,
@@ -44,6 +63,8 @@ pub struct TASBotRendererSettings {
 }
 
 impl Display for TASBotRendererSettings {
+
+    ///Print out the configuration, that is used
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
 
@@ -76,6 +97,12 @@ impl Renderer for TASBotRendererSettings {
     fn print_config(&self) { info!("Start TASBot renderer using those arguments:\n{}", self); }
 }
 
+/// Handle a frame that's to be rendered in the console
+///
+/// # Input
+/// `settings`: The configuration that should be used for rendering
+/// `frame`: The `Frame` that should be rendered
+/// `color`: An optional color to overwrite the frames own color
 fn show_frame(settings: &mut TASBotRendererSettings, frame: &Frame, color: Option<&Color>) {
     let leds = settings.controller.leds_mut(0);
 
@@ -142,6 +169,10 @@ fn clear(settings: &mut TASBotRendererSettings) {
     render(settings);
 }
 
+/// Render the current controller buffer to the LEDs
+///
+/// # Input
+/// `settings`: The configuration that should be used for rendering, which wraps the controller as well
 fn render(settings: &mut TASBotRendererSettings) {
     //#[cfg(target_arch = "arm")]
     match settings.controller.render() {
@@ -150,14 +181,19 @@ fn render(settings: &mut TASBotRendererSettings) {
     }
 }
 
+///Create a new `LEDHardwareConfig` structure fitting for TASBots display
+///
+/// # Input
+/// * `pin`: An optional GPIO pin. Use the default pin otherwise.
+/// * `brightness`: The optional maximum brightness of the LEDs. Use the default brightness otherwise.
 pub fn get_tasbot_eye_config(pin: Option<u8>, brightness: Option<u8>) -> LEDHardwareConfig {
     LEDHardwareConfig {
         frequenz: TARGET_FREQ,
         dma: DMA as i32,
-        pin: pin.unwrap_or(GPIO_PIN) as i32,
+        pin: pin.unwrap_or(DEFAULT_GPIO_PIN) as i32,
         count: NUM_PIXELS as i32,
         strip_type: STRIP_TYPE,
-        brightness: brightness.unwrap_or(BRIGHTNESS),
+        brightness: brightness.unwrap_or(DEFAULT_BRIGHTNESS),
         inverted: INVERTED,
     }
 }

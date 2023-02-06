@@ -3,7 +3,8 @@ use log::debug;
 use crate::gif::Animation;
 use crate::renderer::{Color, Renderer};
 
-pub struct SilentRendererSettings {}
+/// Dummy settings
+pub struct SilentRendererSettings;
 
 impl Renderer for SilentRendererSettings {
     fn play(&mut self, _anim: Animation) {

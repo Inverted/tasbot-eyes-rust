@@ -16,6 +16,9 @@ pub mod console;
 pub mod tasbot_eyes;
 
 ///Renderer, that animates on an LED matrix
+///
+/// # ATTENTION!
+/// This is more pseudocode then anything else! This is not tested and might not work!
 pub mod led_matrix;
 
 ///The universial interface for all renderer

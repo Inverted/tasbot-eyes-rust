@@ -220,11 +220,11 @@ fn get_random_color(colors: &Vec<Color>) -> Color {
 /// * use a random selected color
 ///
 /// # Input
-/// A `bool` indicating, if a random color should be selected
+/// `use_rand_color`: Indicating, if a random color should be selected
 ///
 /// # Output
 /// The right `Color` that should be use to render
-pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
+pub fn get_base_or_blink_color(use_rand_color: bool) -> Option<Color> {
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
@@ -241,7 +241,7 @@ pub fn get_base_or_blink_color(use_ran_color: bool) -> Option<Color> {
     let color = if def_color != FALLBACK_COLOR.to_hex() { Some(Color::from_hex(def_color)) } else { None };
 
     //However, also check, if a random color should be chosen. If not, use whatever the last line yielded
-    if use_ran_color { Some(get_random_color_from_palette()) } else { color }
+    if use_rand_color { Some(get_random_color_from_palette()) } else { color }
 }
 
 /// Calculate the gamma correction for a channel value

@@ -109,13 +109,12 @@ pub fn start_recv_file_server(queue: Arc<Mutex<Vec<PathBuf>>>) {
                                 //Acquire lock
                                 match queue.lock() {
                                     Ok(mut vec) => {
+                                        //Send answer
+                                        let message = format!("Add ({}) to queue", p_message.path.display());
+                                        send_answer(&mut connection, message);
 
                                         //Add to queue
                                         vec.push(p_message.path);
-
-                                        //Send answer
-                                        let message = format!("Added ({}) to queue", p_message.path.display());
-                                        send_answer(&mut connection, message);
                                     }
                                     Err(e) => error!("Can't access mutex: {}", e.to_string())
                                 }

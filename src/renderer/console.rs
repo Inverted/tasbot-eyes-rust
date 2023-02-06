@@ -8,9 +8,13 @@ use log::info;
 use crate::gif::{Animation, Frame, pixel_is_black};
 use crate::renderer::{Color, Renderer, sleep_frame_delay};
 
+///The character, which is printed for pixel that arent black
 const FILLED_CHARACTERS: &str = "██";
+
+///The character, which is printed for pixel that are black
 const EMPTY_CHARACTERS: &str = "  ";
 
+/// Configuration for the console renderer
 pub struct ConsoleRendererSettings {
     pub clear_console: bool,
 }
@@ -49,6 +53,12 @@ impl Renderer for ConsoleRendererSettings {
     }
 }
 
+/// Handle a frame that's to be rendered in the console
+///
+/// # Input
+/// `settings`: The configuration that should be used for rendering
+/// `frame`: The `Frame` that should be rendered
+/// `color`: An optional color to overwrite the frames own color
 fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&Color>) {
     //clear console
     if settings.clear_console {
@@ -62,6 +72,11 @@ fn show_frame(settings: &ConsoleRendererSettings, frame: &Frame, color: Option<&
     sleep_frame_delay(frame);
 }
 
+/// Render the frame in the console
+///
+/// # Input
+/// `frame`: The `Frame` that's gonna be rendered
+/// `color`: An optional color to overwrite the frames own color
 fn render_frame(frame: &Frame, color: Option<&Color>) {
     for row in frame.pixels {
         for pixel in row {
@@ -78,13 +93,13 @@ fn render_frame(frame: &Frame, color: Option<&Color>) {
                 print!("{EMPTY_CHARACTERS}");
             }
         }
-        print!("\n"); //look up doku if we need to flush
+        print!("\n");
         io::stdout().flush().unwrap();
-        //io::stdout().write() could be faster then print
     }
     info!("Rendering okay")
 }
 
+///Clear the console by printing several empty lines.
 fn clear_console() {
     print!("{}[2J", 27 as char);
 }

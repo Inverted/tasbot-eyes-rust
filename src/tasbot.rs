@@ -13,6 +13,15 @@ use crate::color::{get_base_or_blink_color, get_random_color_from_palette};
 use crate::file_operations::{BASE_PATH, BLINK_PATH, files_in_directory, OTHER_PATH, Playlist, read_playlist, STARTUP_PATH};
 use crate::renderer::{play_animation_from_path, Renderer};
 
+/// Start running the eyes. Check on some given conditions, like playlists
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `queue`: The current animation queue that's shared with the network thread
+/// `running`: An `AtomicBool` that indicates, if the loop should be continued
+///
+/// # Todo
+/// Add a few more arguments, to provide some more specific modes the older software has to over
 pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
     let binding = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&binding);
@@ -43,6 +52,12 @@ pub fn start_eyes<T: Renderer>(mut renderer: T, queue: Arc<Mutex<Vec<PathBuf>>>,
     }
 }
 
+/// Play the given `Playlist` in sequential order
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `playlist`: The `Playlist` that is to work through
+/// `running`: An `AtomicBool` that indicates, if the loop should be continued
 fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist, use_rand_color: bool) {
     for entry in playlist.entries {
         let path = PathBuf::from(entry);
@@ -51,13 +66,16 @@ fn play_playlist<T: Renderer>(renderer: &mut T, playlist: Playlist, use_rand_col
     }
 }
 
-fn startup<T: Renderer>(renderer: &mut T) {
-    info!("Play startup animation");
-    let startup_anim_path = Path::new(STARTUP_PATH);
-    play_animation_from_path(renderer, startup_anim_path.to_path_buf(), None);
-    info!("Done playing startup animation");
-}
-
+/// Run the eyes
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `queue`: The current animation queue that's shared with the network thread
+/// `running`: An `AtomicBool` that indicates, if the loop should be continued
+///
+/// # Todo
+/// When moving the rendering in its own thread, likely get rid of the `AtomicBool`
+/// and just kill the thread when exiting.
 fn run_eyes<T: Renderer>(renderer: &mut T, queue: Arc<Mutex<Vec<PathBuf>>>, running: Arc<AtomicBool>) {
     let binding = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&binding);
@@ -82,6 +100,22 @@ fn run_eyes<T: Renderer>(renderer: &mut T, queue: Arc<Mutex<Vec<PathBuf>>>, runn
     }
 }
 
+/// Play the startup animation
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+fn startup<T: Renderer>(renderer: &mut T) {
+    info!("Play startup animation");
+    let startup_anim_path = Path::new(STARTUP_PATH);
+    play_animation_from_path(renderer, startup_anim_path.to_path_buf(), None);
+    info!("Done playing startup animation");
+}
+
+/// Show the base animation
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `use_rand_color`: Indicating, if a random color should be selected
 fn show_base<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Play base animation");
     let default_args = fallback_arguments();
@@ -97,18 +131,28 @@ fn show_base<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Done playing base animation");
 }
 
+/// Do a blink cycle
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `use_rand_color`: Indicating, if a random color should be selected
 fn do_blink_cycle<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Enter blink cycle");
     let default_args = fallback_arguments();
     let args = ARGUMENTS.get().unwrap_or(&default_args);
 
+    //Get count of this cycles blinks
     let blink_amount = get_blink_amount(args.max_blinks);
     info!("Blinking {} time/times", blink_amount);
 
+    //Get a list of blink animations
     let blink_anims_path = Path::new(BLINK_PATH);
     let files = files_in_directory(&blink_anims_path);
 
+    //Init sleep
     blink_sleep(get_blink_delay(args.min_delay, args.max_delay, args.playback_speed) as u64);
+
+    //Then blink the chosen amount of times
     for _ in 0..blink_amount {
         match &files {
             Ok(files) => {
@@ -130,6 +174,12 @@ fn do_blink_cycle<T: Renderer>(renderer: &mut T, use_rand_color: bool) {
     info!("Exit blink cycle");
 }
 
+/// Do a blink cycle
+///
+/// # Input
+/// `renderer`: The renderer that is to use to render the animations
+/// `queue`: The current animation queue that's shared with the network thread
+/// `use_rand_color`: Indicating, if a random color should be selected
 fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<PathBuf>>, use_rand_color: bool) {
     info!("Play other animation");
 
@@ -176,11 +226,24 @@ fn show_next_animation<T: Renderer>(renderer: &mut T, mut queue: MutexGuard<Vec<
     info!("Done playing other animation");
 }
 
+/// Sleep for a given amount of time between blinks
+///
+/// # Inputs
+/// `delay`: The delay that is to sleep
 fn blink_sleep(delay: u64) {
     info!("Sleeping for {} ms for blink", delay);
     thread::sleep(Duration::from_millis(delay));
 }
 
+/// Get how long a sleep delay for a blink should be
+///
+/// # Inputs
+/// * `min_delay`: The smallest allowed duration between blinks
+/// * `max_delay`: The biggest allowed duration between blinks
+/// * `playback_speed`: A factor, that will be multiplied with the result
+///
+/// # Output
+/// The delay `u64` that gonna be slept
 fn get_blink_delay(min_delay: u16, max_delay: u16, playback_speed: f32) -> u64 {
     if min_delay == max_delay {
         return ((min_delay as f32) * (1.0 / playback_speed)) as u64;
@@ -191,6 +254,13 @@ fn get_blink_delay(min_delay: u16, max_delay: u16, playback_speed: f32) -> u64 {
     ((delay as f32) * (1.0 / playback_speed)) as u64 //return
 }
 
+/// The count how many times TASBot should blink in a blinking cycle
+///
+/// # Input
+/// `max_blinks`: The maximum allowed count of blinks
+///
+/// # Output
+/// How many times TASBot is gonna blink
 fn get_blink_amount(max_blinks: u8) -> u8 {
     if max_blinks <= 0 {
         return 0;
