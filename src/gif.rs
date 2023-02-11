@@ -147,6 +147,7 @@ fn read_frame(raw_frame: &gif::Frame) -> Frame {
     //Range based loop is necessary, as the buffer provides each RGBA value in a sequenz
     //Meaning, given a frame has a total of 64 pixels (8x8), the buffer will have 256 entries
     //Thus were stepping through the buffer with the step size 4
+    //todo: Yet, this could maybe be solved with an IntoIter/Iterator?
     for i in (0..raw_frame.buffer.len()).step_by(4) {
         let pixel = Pixel {
             r: raw_frame.buffer[i],

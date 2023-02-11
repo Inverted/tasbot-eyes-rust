@@ -46,10 +46,10 @@ mod led;
 /// Network code such as the animation injection thread are here
 mod network;
 
-//todo: cargo docs
 //todo: clear on exit as argument or clear on exit fast
 //todo: cfg for arm not working
 //todo: reorder files, lol
+//todo: check where options could be resolved better with map
 
 /* Notes
 ? is propagating
