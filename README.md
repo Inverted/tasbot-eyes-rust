@@ -1,10 +1,6 @@
 # tasbot-eyes-rust
 
-This `README.md` is just a placeholder and hold minimal needed information.
-
-## :warning: Attention
-
-I use the gitlab to transfer the files to the Pi. As I have to do *poor man's debugging*, there are and will be a lot of commits of just very small changes
+:warning: This `README.md` is just a placeholder and holds minimal needed information.
 
 ## GIFs
 
